@@ -8,10 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowDown, ArrowUp, Scale, Edit, Plus, Search, Trash, TriangleAlert, Check, Clock } from 'lucide-react';
+import { ArrowDown, ArrowUp, Scale, Edit, Plus, Search, Trash, TriangleAlert, Check, Clock, Briefcase, User, Calendar, DollarSign } from 'lucide-react';
 import { useDataStorage, FinancialItem } from '@/hooks/use-data-storage';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 const formatCurrency = (value: number) => {
@@ -273,69 +273,64 @@ const FinancialPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="rounded-md border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Vencimento</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Parcela</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredFinancials.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
-                      Nenhum lançamento encontrado.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredFinancials.map((item) => {
-                    const clientName = data.clients.find(c => c.id === item.clientId)?.name || 'N/A';
-                    let statusDisplay = item.status;
-                    const dueDate = new Date(item.dueDate + 'T00:00:00');
-                    if (item.status === 'pending' && dueDate < today) {
-                      statusDisplay = 'overdue';
-                    }
-                    const statusLabels = { paid: 'Pago', pending: 'Pendente', overdue: 'Vencido' };
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredFinancials.length === 0 ? (
+              <p className="col-span-full text-center text-muted-foreground py-10">Nenhum lançamento encontrado.</p>
+            ) : (
+              filteredFinancials.map((item) => {
+                const clientName = data.clients.find(c => c.id === item.clientId)?.name || 'N/A';
+                let statusDisplay = item.status;
+                const dueDate = new Date(item.dueDate + 'T00:00:00');
+                if (item.status === 'pending' && dueDate < today) {
+                  statusDisplay = 'overdue';
+                }
+                const statusLabels = { paid: 'Pago', pending: 'Pendente', overdue: 'Vencido' };
 
-                    return (
-                      <TableRow key={item.id}>
-                        <TableCell className={cn("font-medium", item.type === 'revenue' ? 'text-green-600' : 'text-red-600')}>
-                          {item.type === 'revenue' ? 'Receita' : 'Despesa'}
-                        </TableCell>
-                        <TableCell>{clientName}</TableCell>
-                        <TableCell>{item.description}</TableCell>
-                        <TableCell>{new Date(item.dueDate).toLocaleDateString('pt-BR')}</TableCell>
-                        <TableCell>{formatCurrency(item.value)}</TableCell>
-                        <TableCell>{item.installment.current}/{item.installment.total}</TableCell>
-                        <TableCell>
-                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(statusDisplay)}`}>
-                            {statusLabels[statusDisplay]}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" onClick={() => handleTogglePaymentStatus(item)} title={item.status === 'paid' ? 'Marcar como Pendente' : 'Marcar como Pago'}>
-                            {item.status === 'paid' ? <Clock className="h-4 w-4 text-yellow-500" /> : <Check className="h-4 w-4 text-green-500" />}
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleEditFinancial(item)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteFinancial(item.id)}>
-                            <Trash className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
+                return (
+                  <Card key={item.id} className="relative flex flex-col">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className={cn("text-lg flex items-center gap-2", item.type === 'revenue' ? 'text-green-600' : 'text-red-600')}>
+                          {item.type === 'revenue' ? <ArrowUp className="h-5 w-5" /> : <ArrowDown className="h-5 w-5" />}
+                          {item.description}
+                        </CardTitle>
+                        <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", getStatusBadgeClass(statusDisplay))}>
+                          {statusLabels[statusDisplay]}
+                        </span>
+                      </div>
+                      <CardDescription className="mt-1">Cliente: {clientName}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-1 space-y-2 text-sm text-muted-foreground">
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-2" /> Vencimento: {new Date(item.dueDate).toLocaleDateString('pt-BR')}
+                      </div>
+                      <div className="flex items-center font-semibold text-foreground">
+                        <DollarSign className="h-4 w-4 mr-2" /> Valor: {formatCurrency(item.value)}
+                      </div>
+                      <div className="flex items-center">
+                        <Briefcase className="h-4 w-4 mr-2" /> Parcela: {item.installment.current}/{item.installment.total}
+                      </div>
+                      {item.notes && (
+                        <div className="flex items-start">
+                          <User className="h-4 w-4 mr-2 mt-1 flex-shrink-0" /> <span className="break-words">{item.notes}</span>
+                        </div>
+                      )}
+                    </CardContent>
+                    <div className="flex justify-end p-4 pt-0 gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleTogglePaymentStatus(item)} title={item.status === 'paid' ? 'Marcar como Pendente' : 'Marcar como Pago'}>
+                        {item.status === 'paid' ? <Clock className="h-4 w-4 text-yellow-500" /> : <Check className="h-4 w-4 text-green-500" />}
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleEditFinancial(item)}>
+                        <Edit className="h-4 w-4 mr-2" /> Editar
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDeleteFinancial(item.id)}>
+                        <Trash className="h-4 w-4 mr-2" /> Excluir
+                      </Button>
+                    </div>
+                  </Card>
+                );
+              })
+            )}
           </div>
         </div>
       )}
@@ -355,7 +350,7 @@ const FinancialPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="financialClient" className="text-right">Cliente</Label>
-              <Select name="financialClient" defaultValue={editingFinancial?.clientId?.toString() || ''}>
+              <Select name="financialClient" defaultValue={editingFinancial?.clientId?.toString() || 'null'}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>
