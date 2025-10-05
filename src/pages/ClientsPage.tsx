@@ -68,17 +68,17 @@ const ClientsPage: React.FC = () => {
       let updatedClientAccesses = prev.clientAccesses;
 
       if (editingClient) {
-        // Encontra o cliente antigo para comparar os nomes
+        // Encontra o cliente antigo para comparar os nomes e e-mails
         const oldClient = prev.clients.find(c => c.id === newClient.id);
         updatedClients = prev.clients.map(client =>
           client.id === newClient.id ? newClient : client
         );
 
-        // Se o nome do cliente mudou, atualiza os acessos do cliente
-        if (oldClient && oldClient.name !== newClient.name) {
+        // Se o nome ou o e-mail do cliente mudou, atualiza os acessos do cliente
+        if (oldClient && (oldClient.name !== newClient.name || oldClient.email !== newClient.email)) {
           updatedClientAccesses = prev.clientAccesses.map(access =>
             access.clientId === newClient.id
-              ? { ...access, clientName: newClient.name }
+              ? { ...access, clientName: newClient.name, email: newClient.email }
               : access
           );
         }
