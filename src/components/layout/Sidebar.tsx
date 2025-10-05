@@ -27,7 +27,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, onClick }) => 
       onClick={onClick}
     >
       <Icon className="mr-3 h-5 w-5" />
-      <span className="hidden md:inline-block">{label}</span>
+      <span className="inline-block">{label}</span> {/* Removido 'hidden md:inline-block' para sempre exibir o label */}
     </NavLink>
   </li>
 );
