@@ -10,9 +10,10 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/components/SessionContextProvider';
 import { User as SupabaseUser } from '@supabase/supabase-js'; // Importar o tipo User do Supabase
+import { useDataStorage } from '@/hooks/use-data-storage'; // Importar useDataStorage
 
 // Definindo tipos para os dados do chat
-interface ChatUserProfile {
+interface SupabaseProfile {
   id: string; // Supabase user ID
   display_name: string;
   avatar_url: string | null;
@@ -25,28 +26,37 @@ interface ChatMessage {
   receiver_id: string;
   content: string;
   created_at: string;
-  // Adicionaremos informações do remetente para exibição
-  sender_profile?: ChatUserProfile;
+  sender_profile?: SupabaseProfile;
+}
+
+// Novo tipo para um contato unificado (Supabase Profile, Local Client, Local Lawyer)
+interface UnifiedContact {
+  id: string; // Supabase user ID (for profiles) or a generated string (for local data)
+  type: 'profile' | 'client' | 'lawyer';
+  displayName: string;
+  email: string;
+  avatarUrl: string | null;
+  originalLocalId?: number; // Para referenciar o ID original da mock data
 }
 
 // Função auxiliar para obter detalhes do perfil de forma consistente
-const getProfileDetails = (profile: ChatUserProfile | SupabaseUser | null | undefined) => {
-  if (!profile) {
+const getProfileDetails = (contact: UnifiedContact | SupabaseUser | null | undefined) => {
+  if (!contact) {
     return {
       displayName: 'Usuário',
       avatarUrl: "https://i.pravatar.cc/150?img=11", // Avatar padrão
     };
   }
 
-  if ('display_name' in profile) { // É um ChatUserProfile
+  if ('type' in contact) { // É um UnifiedContact
     return {
-      displayName: profile.display_name,
-      avatarUrl: profile.avatar_url || "https://i.pravatar.cc/150?img=11",
+      displayName: contact.displayName,
+      avatarUrl: contact.avatarUrl || "https://i.pravatar.cc/150?img=11",
     };
   } else { // É um SupabaseUser
     return {
-      displayName: profile.user_metadata?.full_name || profile.user_metadata?.display_name || 'Usuário',
-      avatarUrl: profile.user_metadata?.avatar_url || "https://i.pravatar.cc/150?img=11",
+      displayName: contact.user_metadata?.full_name || contact.user_metadata?.display_name || 'Usuário',
+      avatarUrl: contact.user_metadata?.avatar_url || "https://i.pravatar.cc/150?img=11",
     };
   }
 };
@@ -54,8 +64,9 @@ const getProfileDetails = (profile: ChatUserProfile | SupabaseUser | null | unde
 
 const ChatPage: React.FC = () => {
   const { user, isLoading: isSessionLoading } = useSession();
-  const [contacts, setContacts] = useState<ChatUserProfile[]>([]);
-  const [selectedContact, setSelectedContact] = useState<ChatUserProfile | null>(null);
+  const { data: localData } = useDataStorage(); // Usar dados locais
+  const [contacts, setContacts] = useState<UnifiedContact[]>([]);
+  const [selectedContact, setSelectedContact] = useState<UnifiedContact | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessageContent, setNewMessageContent] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,31 +79,88 @@ const ChatPage: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Efeito para buscar contatos (outros usuários com perfis)
+  // Efeito para buscar todos os contatos (perfis Supabase, clientes locais, advogados locais)
   useEffect(() => {
     if (!currentUserId) return;
 
-    const fetchContacts = async () => {
-      const { data, error } = await supabase
+    const fetchAllContacts = async () => {
+      // 1. Buscar perfis Supabase (outros usuários do sistema)
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, display_name, avatar_url, email')
         .neq('id', currentUserId); // Exclui o próprio usuário
 
-      if (error) {
-        console.error('Erro ao buscar contatos:', error);
-        toast.error('Erro ao carregar contatos.');
-      } else {
-        setContacts(data as ChatUserProfile[]);
+      if (profilesError) {
+        console.error('Erro ao buscar perfis:', profilesError);
+        toast.error('Erro ao carregar perfis.');
+        return;
       }
+
+      const supabaseContacts: UnifiedContact[] = (profilesData || []).map(p => ({
+        id: p.id,
+        type: 'profile',
+        displayName: p.display_name,
+        email: p.email,
+        avatarUrl: p.avatar_url,
+      }));
+
+      // 2. Buscar clientes da mock data local
+      const localClients: UnifiedContact[] = localData.clients.map(c => ({
+        id: `client-${c.id}`, // ID gerado para contatos locais
+        type: 'client',
+        displayName: c.name,
+        email: c.email,
+        avatarUrl: null, // Clientes não têm avatar na mock data
+        originalLocalId: c.id,
+      }));
+
+      // 3. Buscar advogados da mock data local
+      const localLawyers: UnifiedContact[] = localData.lawyers.map(l => ({
+        id: `lawyer-${l.id}`, // ID gerado para contatos locais
+        type: 'lawyer',
+        displayName: l.name,
+        email: l.email,
+        avatarUrl: null, // Advogados não têm avatar na mock data
+        originalLocalId: l.id,
+      }));
+
+      // Combinar e filtrar duplicatas (ex: se um advogado local também for um perfil Supabase)
+      const combinedContactsMap = new Map<string, UnifiedContact>();
+
+      // Adicionar perfis Supabase primeiro
+      supabaseContacts.forEach(contact => combinedContactsMap.set(contact.id, contact));
+
+      // Adicionar clientes locais, garantindo que não haja duplicatas de e-mail com perfis existentes
+      localClients.forEach(localClient => {
+        if (!Array.from(combinedContactsMap.values()).some(c => c.email === localClient.email)) {
+          combinedContactsMap.set(localClient.id, localClient);
+        }
+      });
+
+      // Adicionar advogados locais, garantindo que não haja duplicatas de e-mail com perfis existentes
+      localLawyers.forEach(localLawyer => {
+        if (!Array.from(combinedContactsMap.values()).some(c => c.email === localLawyer.email)) {
+          combinedContactsMap.set(localLawyer.id, localLawyer);
+        }
+      });
+
+      setContacts(Array.from(combinedContactsMap.values()));
     };
 
-    fetchContacts();
-  }, [currentUserId]);
+    fetchAllContacts();
+  }, [currentUserId, localData.clients, localData.lawyers]); // Depende dos dados locais
 
   // Efeito para buscar mensagens e configurar a escuta em tempo real
   useEffect(() => {
     if (!currentUserId || !selectedContact) {
       setMessages([]); // Limpa as mensagens se não houver contato selecionado
+      return;
+    }
+
+    // Apenas busca/escuta mensagens se o contato selecionado for um perfil Supabase real
+    if (selectedContact.type !== 'profile') {
+      setMessages([]); // Nenhuma mensagem para contatos que não são perfis Supabase
+      toast.info(`O chat com ${selectedContact.displayName} é apenas para demonstração, pois não é um usuário registrado no sistema.`, { duration: 5000 });
       return;
     }
 
@@ -112,7 +180,7 @@ const ChatPage: React.FC = () => {
       } else {
         setMessages(data.map(msg => ({
           ...msg,
-          sender_profile: msg.sender_profile ? (msg.sender_profile as ChatUserProfile) : undefined
+          sender_profile: msg.sender_profile ? (msg.sender_profile as SupabaseProfile) : undefined
         })) as ChatMessage[]);
         scrollToBottom();
       }
@@ -137,7 +205,7 @@ const ChatPage: React.FC = () => {
           supabase.from('profiles').select('display_name, avatar_url').eq('id', newMsg.sender_id).single()
             .then(({ data: profileData, error: profileError }) => {
               if (!profileError && profileData) {
-                newMsg.sender_profile = profileData as ChatUserProfile;
+                newMsg.sender_profile = profileData as SupabaseProfile;
               }
               setMessages((prevMessages) => [...prevMessages, newMsg]);
               scrollToBottom();
@@ -160,9 +228,16 @@ const ChatPage: React.FC = () => {
     e?.preventDefault();
     if (!newMessageContent.trim() || !currentUserId || !selectedContact) return;
 
+    // Verifica se o contato selecionado é um perfil Supabase real antes de enviar
+    if (selectedContact.type !== 'profile') {
+      toast.error(`Não é possível enviar mensagens para ${selectedContact.displayName}. O chat é funcional apenas para usuários registrados no sistema (perfis).`);
+      setNewMessageContent('');
+      return;
+    }
+
     const { error } = await supabase.from('messages').insert({
       sender_id: currentUserId,
-      receiver_id: selectedContact.id,
+      receiver_id: selectedContact.id, // Este deve ser um UUID de auth.users
       content: newMessageContent.trim(),
     });
 
@@ -171,13 +246,12 @@ const ChatPage: React.FC = () => {
       toast.error('Erro ao enviar mensagem.');
     } else {
       setNewMessageContent('');
-      // A mensagem será adicionada via real-time subscription, então não precisamos adicionar aqui
-      // toast.success('Mensagem enviada!'); // Removido para evitar toast duplicado com real-time
+      // A mensagem será adicionada via real-time subscription
     }
   };
 
   const filteredContacts = contacts.filter(contact =>
-    contact.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contact.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contact.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -233,7 +307,6 @@ const ChatPage: React.FC = () => {
                       <div className="font-medium">{contactDetails.displayName}</div>
                       <div className="text-sm text-muted-foreground truncate">{contact.email}</div>
                     </div>
-                    {/* <div className="text-xs text-muted-foreground">{contact.time}</div> */}
                   </div>
                 );
               })
@@ -272,13 +345,17 @@ const ChatPage: React.FC = () => {
               </div>
 
               <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                {messages.length === 0 ? (
+                {messages.length === 0 && selectedContact.type === 'profile' ? (
                   <div className="text-center text-muted-foreground py-10">Nenhuma mensagem nesta conversa.</div>
+                ) : messages.length === 0 && selectedContact.type !== 'profile' ? (
+                  <div className="text-center text-muted-foreground py-10">
+                    Este é um contato da sua base de dados local. O chat é apenas para demonstração.
+                  </div>
                 ) : (
                   messages.map(message => {
                     const isSentByCurrentUser = message.sender_id === currentUserId;
                     const senderProfile = isSentByCurrentUser ? user : selectedContact;
-                    const senderDetails = getProfileDetails(senderProfile); // Usar a função auxiliar aqui
+                    const senderDetails = getProfileDetails(senderProfile);
                     const displayTime = new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
                     return (
