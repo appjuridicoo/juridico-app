@@ -3,13 +3,13 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRight, Calendar, Clock, FileText, PlusCircle, Users } from 'lucide-react';
+import { ArrowUpRight, Calendar, Clock, FileText, PlusCircle, Users, Bell, Briefcase, ClipboardList, DollarSign } from 'lucide-react'; // Importando mais ícones
 import { useDataStorage } from '@/hooks/use-data-storage';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const DashboardPage: React.FC = () => {
-  const { data } = useDataStorage(); // Removido selectDirectory, saveData, storagePath
+  const { data } = useDataStorage();
   const navigate = useNavigate();
 
   // Exemplo de dados para widgets (pode ser refinado para usar dados reais do `data` hook)
@@ -43,13 +43,15 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Removido os botões de Selecionar Diretório e Salvar Dados */}
-      {/* Removida a caixa de informação sobre o diretório de salvamento */}
+      <h2 className="text-3xl font-bold text-foreground mb-6">Visão Geral do Escritório</h2>
+      <p className="text-lg text-muted-foreground">Bem-vindo(a) de volta, {data.userProfile.displayName}! Aqui está um resumo rápido das suas atividades.</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Próximos Prazos</CardTitle>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary" /> Próximos Prazos
+            </CardTitle>
             <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => navigate('/calendar')}>Ver todos</Button>
           </CardHeader>
           <CardContent>
@@ -66,7 +68,9 @@ const DashboardPage: React.FC = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Minhas Tarefas Hoje</CardTitle>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <ClipboardList className="h-4 w-4 text-primary" /> Minhas Tarefas Hoje
+            </CardTitle>
             <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => toast.info("Funcionalidade de tarefas em desenvolvimento!")}>Ver todas</Button>
           </CardHeader>
           <CardContent>
@@ -83,7 +87,9 @@ const DashboardPage: React.FC = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Últimas Atualizações</CardTitle>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Bell className="h-4 w-4 text-primary" /> Últimas Atualizações
+            </CardTitle>
             <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => toast.info("Funcionalidade de atualizações em desenvolvimento!")}>Ver todas</Button>
           </CardHeader>
           <CardContent>
@@ -100,7 +106,9 @@ const DashboardPage: React.FC = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Agenda do Dia</CardTitle>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" /> Agenda do Dia
+            </CardTitle>
             <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => navigate('/calendar')}>Ver agenda completa</Button>
           </CardHeader>
           <CardContent>
@@ -122,21 +130,21 @@ const DashboardPage: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="flex flex-col h-auto py-4" onClick={() => navigate('/processes')}>
-              <PlusCircle className="h-6 w-6 mb-2" />
-              <span>Novo Processo</span>
+            <Button variant="outline" className="flex flex-col h-auto py-4 px-2 items-center justify-center text-center" onClick={() => navigate('/processes')}>
+              <Briefcase className="h-6 w-6 mb-2 text-primary" />
+              <span className="text-sm font-medium">Novo Processo</span>
             </Button>
-            <Button variant="outline" className="flex flex-col h-auto py-4" onClick={() => toast.info("Funcionalidade de nova tarefa em desenvolvimento!")}>
-              <FileText className="h-6 w-6 mb-2" />
-              <span>Nova Tarefa</span>
+            <Button variant="outline" className="flex flex-col h-auto py-4 px-2 items-center justify-center text-center" onClick={() => toast.info("Funcionalidade de nova tarefa em desenvolvimento!")}>
+              <FileText className="h-6 w-6 mb-2 text-primary" />
+              <span className="text-sm font-medium">Nova Tarefa</span>
             </Button>
-            <Button variant="outline" className="flex flex-col h-auto py-4" onClick={() => navigate('/calendar')}>
-              <Calendar className="h-6 w-6 mb-2" />
-              <span>Agendar Compromisso</span>
+            <Button variant="outline" className="flex flex-col h-auto py-4 px-2 items-center justify-center text-center" onClick={() => navigate('/calendar')}>
+              <Calendar className="h-6 w-6 mb-2 text-primary" />
+              <span className="text-sm font-medium">Agendar Compromisso</span>
             </Button>
-            <Button variant="outline" className="flex flex-col h-auto py-4" onClick={() => navigate('/financial')}>
-              <ArrowUpRight className="h-6 w-6 mb-2" />
-              <span>Lançar Receita</span>
+            <Button variant="outline" className="flex flex-col h-auto py-4 px-2 items-center justify-center text-center" onClick={() => navigate('/financial')}>
+              <DollarSign className="h-6 w-6 mb-2 text-primary" />
+              <span className="text-sm font-medium">Lançar Receita</span>
             </Button>
           </div>
         </CardContent>
