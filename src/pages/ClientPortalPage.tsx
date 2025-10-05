@@ -140,6 +140,9 @@ const ClientPortalPage: React.FC = () => {
     toast.success(`Acesso de ${access.clientName} ${newStatus === 'Ativo' ? 'ativado' : 'desativado'} com sucesso!`);
   };
 
+  const handleSendAccess = (access: ClientAccess) => {
+    toast.info(`Simulando envio de acesso para ${access.email}. Senha: ${access.generatedPassword}`, { duration: 5000 });
+  };
 
   return (
     <div className="space-y-6">
@@ -218,6 +221,9 @@ const ClientPortalPage: React.FC = () => {
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => handleResetPassword(access)}>
                   <Key className="h-4 w-4 mr-2" /> Redefinir Senha
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleSendAccess(access)}>
+                  <Mail className="h-4 w-4 mr-2" /> Enviar Acesso
                 </Button>
                 <Button variant="destructive" size="sm" onClick={() => handleToggleAccessStatus(access)}>
                   {access.status === 'Ativo' ? <Ban className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />} {access.status === 'Ativo' ? 'Desativar' : 'Ativar'}
