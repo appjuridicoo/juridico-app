@@ -215,17 +215,17 @@ const ClientPortalPage: React.FC = () => {
                   <Key className="h-4 w-4 mr-2" /> Senha: <span className="font-mono text-xs">{access.generatedPassword}</span>
                 </div>
               </CardContent>
-              <div className="flex justify-end p-4 pt-0 gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleEditAccess(access)}>
+              <div className="flex flex-col sm:flex-row justify-end p-4 pt-0 gap-2"> {/* Alterado para flex-col em mobile */}
+                <Button variant="outline" size="sm" onClick={() => handleEditAccess(access)} className="w-full sm:w-auto">
                   <Edit className="h-4 w-4 mr-2" /> Editar
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => handleResetPassword(access)}>
+                <Button variant="outline" size="sm" onClick={() => handleResetPassword(access)} className="w-full sm:w-auto">
                   <Key className="h-4 w-4 mr-2" /> Redefinir Senha
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => handleSendAccess(access)}>
+                <Button variant="outline" size="sm" onClick={() => handleSendAccess(access)} className="w-full sm:w-auto">
                   <Mail className="h-4 w-4 mr-2" /> Enviar Acesso
                 </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleToggleAccessStatus(access)}>
+                <Button variant="destructive" size="sm" onClick={() => handleToggleAccessStatus(access)} className="w-full sm:w-auto">
                   {access.status === 'Ativo' ? <Ban className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />} {access.status === 'Ativo' ? 'Desativar' : 'Ativar'}
                 </Button>
               </div>
