@@ -169,8 +169,8 @@ const ClientsPage: React.FC = () => {
             <DialogTitle>{editingClient ? 'Editar Cliente' : 'Adicionar Novo Cliente'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="clientType" className="text-right">Tipo</Label>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="clientType" className="md:text-right">Tipo</Label>
               <Select name="clientType" defaultValue={editingClient?.type || 'person'}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione o tipo" />
@@ -181,32 +181,32 @@ const ClientsPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="clientName" className="text-right">Nome / Razão Social</Label>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="clientName" className="md:text-right">Nome / Razão Social</Label>
               <Input id="clientName" name="clientName" defaultValue={editingClient?.name || ''} className="col-span-3" required />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="clientContact" className="text-right">Contato</Label>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="clientContact" className="md:text-right">Contato</Label>
               <Input id="clientContact" name="clientContact" defaultValue={editingClient?.contact || ''} className="col-span-3" />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="clientDocument" className="text-right">CPF / CNPJ</Label>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="clientDocument" className="md:text-right">CPF / CNPJ</Label>
               <Input id="clientDocument" name="clientDocument" defaultValue={editingClient?.document || ''} className="col-span-3" required />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="clientEmail" className="text-right">Email</Label>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="clientEmail" className="md:text-right">Email</Label>
               <Input id="clientEmail" name="clientEmail" type="email" defaultValue={editingClient?.email || ''} className="col-span-3" required />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="clientPhone" className="text-right">Telefone</Label>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="clientPhone" className="md:text-right">Telefone</Label>
               <Input id="clientPhone" name="clientPhone" type="tel" defaultValue={editingClient?.phone || ''} className="col-span-3" required />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="clientAddress" className="text-right">Endereço</Label>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="clientAddress" className="md:text-right">Endereço</Label>
               <Input id="clientAddress" name="clientAddress" defaultValue={editingClient?.address || ''} className="col-span-3" />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="clientStatus" className="text-right">Status</Label>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="clientStatus" className="md:text-right">Status</Label>
               <Select name="clientStatus" defaultValue={editingClient?.status || 'ativo'}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione o status" />
@@ -218,8 +218,8 @@ const ClientsPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="clientNotes" className="text-right">Observações</Label>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="clientNotes" className="md:text-right">Observações</Label>
               <Textarea id="clientNotes" name="clientNotes" defaultValue={editingClient?.notes || ''} className="col-span-3" />
             </div>
             <div className="flex justify-end gap-2 mt-4">
