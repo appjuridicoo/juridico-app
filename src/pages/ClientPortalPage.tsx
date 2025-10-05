@@ -5,14 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Key, Edit, Ban, Plus } from 'lucide-react';
+import { Key, Edit, Ban, Plus, Mail, Calendar, Clock, Briefcase, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useDataStorage } from '@/hooks/use-data-storage';
-import { Label } from '@/components/ui/label'; // Adicionado importação do Label
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 const ClientPortalPage: React.FC = () => {
   const { data } = useDataStorage();
+
+  // Dados de exemplo para acessos gerados (mantidos para demonstração)
+  const generatedAccesses = [
+    { id: 1, clientName: 'Empresa XYZ Ltda.', email: 'contato@xyz.com', processes: '12345/2023, 67890/2023', creationDate: '15/10/2023', lastAccess: '24/10/2023', status: 'Ativo' },
+    { id: 2, clientName: 'Mariana Costa', email: 'mariana.costa@email.com', processes: '54321/2023', creationDate: '20/10/2023', lastAccess: '-', status: 'Pendente' },
+  ];
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
@@ -59,65 +66,51 @@ const ClientPortalPage: React.FC = () => {
       </div>
 
       <h3 className="text-xl font-semibold mt-8 mb-4">Acessos Gerados</h3>
-      <div className="rounded-md border overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Cliente</TableHead>
-              <TableHead>E-mail</TableHead>
-              <TableHead>Processos Vinculados</TableHead>
-              <TableHead>Data de Criação</TableHead>
-              <TableHead>Último Acesso</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {/* Dados de exemplo */}
-            <TableRow>
-              <TableCell className="font-medium">Empresa XYZ Ltda.</TableCell>
-              <TableCell>contato@xyz.com</TableCell>
-              <TableCell>12345/2023, 67890/2023</TableCell>
-              <TableCell>15/10/2023</TableCell>
-              <TableCell>24/10/2023</TableCell>
-              <TableCell>
-                <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", getStatusBadgeClass('Ativo'))}>Ativo</span>
-              </TableCell>
-              <TableCell className="text-right">
-                <Button variant="ghost" size="icon" onClick={() => toast.info("Editar acesso em desenvolvimento!")}>
-                  <Edit className="h-4 w-4" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {generatedAccesses.length === 0 ? (
+          <p className="col-span-full text-center text-muted-foreground py-10">Nenhum acesso gerado ainda.</p>
+        ) : (
+          generatedAccesses.map((access) => (
+            <Card key={access.id} className="relative flex flex-col">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <User className="h-5 w-5 text-primary" />
+                    {access.clientName}
+                  </CardTitle>
+                  <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", getStatusBadgeClass(access.status))}>
+                    {access.status}
+                  </span>
+                </div>
+                <CardDescription className="mt-1 flex items-center gap-2">
+                  <Mail className="h-4 w-4" /> {access.email}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1 space-y-2 text-sm text-muted-foreground">
+                <div className="flex items-center">
+                  <Briefcase className="h-4 w-4 mr-2" /> Processos: {access.processes}
+                </div>
+                <div className="flex items-center">
+                  <Calendar className="h-4 w-4 mr-2" /> Criado em: {access.creationDate}
+                </div>
+                <div className="flex items-center">
+                  <Clock className="h-4 w-4 mr-2" /> Último Acesso: {access.lastAccess}
+                </div>
+              </CardContent>
+              <div className="flex justify-end p-4 pt-0 gap-2">
+                <Button variant="outline" size="sm" onClick={() => toast.info("Editar acesso em desenvolvimento!")}>
+                  <Edit className="h-4 w-4 mr-2" /> Editar
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => toast.info("Redefinir senha em desenvolvimento!")}>
-                  <Key className="h-4 w-4" />
+                <Button variant="outline" size="sm" onClick={() => toast.info("Redefinir senha em desenvolvimento!")}>
+                  <Key className="h-4 w-4 mr-2" /> Redefinir Senha
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => toast.info("Desativar acesso em desenvolvimento!")}>
-                  <Ban className="h-4 w-4 text-red-500" />
+                <Button variant="destructive" size="sm" onClick={() => toast.info("Desativar acesso em desenvolvimento!")}>
+                  <Ban className="h-4 w-4 mr-2" /> Desativar
                 </Button>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="font-medium">Mariana Costa</TableCell>
-              <TableCell>mariana.costa@email.com</TableCell>
-              <TableCell>54321/2023</TableCell>
-              <TableCell>20/10/2023</TableCell>
-              <TableCell>-</TableCell>
-              <TableCell>
-                <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", getStatusBadgeClass('Pendente'))}>Pendente</span>
-              </TableCell>
-              <TableCell className="text-right">
-                <Button variant="ghost" size="icon" onClick={() => toast.info("Editar acesso em desenvolvimento!")}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => toast.info("Redefinir senha em desenvolvimento!")}>
-                  <Key className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => toast.info("Desativar acesso em desenvolvimento!")}>
-                  <Ban className="h-4 w-4 text-red-500" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+              </div>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );
