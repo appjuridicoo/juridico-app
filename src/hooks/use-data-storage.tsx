@@ -71,6 +71,19 @@ export interface DocumentItem {
   count?: number; // Para pastas
 }
 
+// Nova interface para acessos de cliente
+export interface ClientAccess {
+  id: number;
+  clientId: number;
+  clientName: string;
+  email: string;
+  generatedPassword: string; // Senha gerada para o portal
+  processes: string[]; // Números dos processos que o cliente pode acessar
+  creationDate: string; // YYYY-MM-DD
+  lastAccess: string; // YYYY-MM-DD ou '-'
+  status: 'Ativo' | 'Pendente' | 'Inativo';
+}
+
 export interface AppData {
   clients: Client[];
   processes: Process[];
@@ -78,6 +91,7 @@ export interface AppData {
   userProfile: UserProfile;
   financials: FinancialItem[];
   documents: DocumentItem[];
+  clientAccesses: ClientAccess[]; // Novo: lista de acessos de clientes
 }
 
 // --- Dados Iniciais ---
@@ -146,6 +160,11 @@ const getInitialDocumentsData = (): DocumentItem[] => [
   { id: 18, type: 'file', name: 'Declaração de Hipossuficiência.docx', date: '2023-11-02', size: 300000 },
 ];
 
+const getInitialClientAccessesData = (): ClientAccess[] => [
+  { id: 1, clientId: 1, clientName: 'Empresa XYZ Ltda.', email: 'contato@xyz.com', generatedPassword: 'password123', processes: ['12345/2023', '67890/2023'], creationDate: '15/10/2023', lastAccess: '24/10/2023', status: 'Ativo' },
+  { id: 2, clientId: 3, clientName: 'Mariana Costa', email: 'mariana.costa@email.com', generatedPassword: 'password456', processes: ['54321/2023'], creationDate: '20/10/2023', lastAccess: '-', status: 'Pendente' },
+];
+
 const initialData: AppData = {
   clients: getInitialClientsData(),
   processes: getInitialProcessesData(),
@@ -153,6 +172,7 @@ const initialData: AppData = {
   userProfile: getInitialProfileData(),
   financials: getInitialFinancialsData(),
   documents: getInitialDocumentsData(),
+  clientAccesses: getInitialClientAccessesData(), // Novo: dados iniciais para acessos de clientes
 };
 
 interface DataStorageContextType {
@@ -204,6 +224,7 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
       userProfile: loadItem('juridico_userProfile', getInitialProfileData),
       financials: loadItem('juridico_financials', getInitialFinancialsData),
       documents: loadItem('juridico_documents', getInitialDocumentsData),
+      clientAccesses: loadItem('juridico_clientAccesses', getInitialClientAccessesData), // Novo: carregar acessos
     });
     setStoragePath('Armazenamento local do navegador');
   }, []);
@@ -235,6 +256,7 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
         userProfile: await loadFile('userProfile.json', getInitialProfileData),
         financials: await loadFile('financials.json', getInitialFinancialsData),
         documents: await loadFile('documents.json', getInitialDocumentsData),
+        clientAccesses: await loadFile('clientAccesses.json', getInitialClientAccessesData), // Novo: carregar acessos
       };
       setData(loadedData);
       setStoragePath(directoryHandle.name);
@@ -258,7 +280,7 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
         loadDataFromLocalStorage();
       }
     } catch (error: any) {
-      console.error('Erro ao selecionar diretório:', error);
+      console.error('[DataStorage] Erro ao selecionar diretório:', error);
       if (error.name !== 'AbortError') {
         toast.error('A seleção de diretório foi cancelada ou falhou.');
       }
@@ -276,6 +298,7 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
           'userProfile.json': data.userProfile,
           'financials.json': data.financials,
           'documents.json': data.documents,
+          'clientAccesses.json': data.clientAccesses, // Novo: salvar acessos
         };
 
         for (const [fileName, content] of Object.entries(dataFiles)) {
@@ -293,6 +316,7 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
         localStorage.setItem('juridico_userProfile', JSON.stringify(data.userProfile));
         localStorage.setItem('juridico_financials', JSON.stringify(data.financials));
         localStorage.setItem('juridico_documents', JSON.stringify(data.documents));
+        localStorage.setItem('juridico_clientAccesses', JSON.stringify(data.clientAccesses)); // Novo: salvar acessos
         console.log('[DataStorage] Saved all data to localStorage.');
         console.log('[DataStorage] Saved userProfile:', data.userProfile);
         toast.success('Dados salvos no armazenamento local do navegador.');
