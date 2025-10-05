@@ -3,13 +3,13 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRight, Calendar, Clock, FileText, FolderOpen, Info, PlusCircle, Save, Users } from 'lucide-react';
+import { ArrowUpRight, Calendar, Clock, FileText, PlusCircle, Users } from 'lucide-react';
 import { useDataStorage } from '@/hooks/use-data-storage';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const DashboardPage: React.FC = () => {
-  const { data, selectDirectory, saveData, storagePath } = useDataStorage();
+  const { data } = useDataStorage(); // Removido selectDirectory, saveData, storagePath
   const navigate = useNavigate();
 
   // Exemplo de dados para widgets (pode ser refinado para usar dados reais do `data` hook)
@@ -41,31 +41,10 @@ const DashboardPage: React.FC = () => {
     { title: 'Consulta jurídica', time: '15:30' },
   ];
 
-  const handleSelectDirectory = async () => {
-    await selectDirectory();
-  };
-
-  const handleSaveData = async () => {
-    await saveData();
-  };
-
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-end gap-4"> {/* Ajustado para empilhar em mobile */}
-        <Button onClick={handleSelectDirectory} variant="outline" className="flex items-center gap-2">
-          <FolderOpen className="h-4 w-4" />
-          Selecionar Diretório
-        </Button>
-        <Button onClick={handleSaveData} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white">
-          <Save className="h-4 w-4" />
-          Salvar Dados
-        </Button>
-      </div>
-
-      <div className="flex items-center p-3 rounded-lg bg-blue-50 border-l-4 border-blue-500 text-blue-800 dark:bg-blue-950 dark:border-blue-700 dark:text-blue-200">
-        <Info className="h-5 w-5 mr-2" />
-        Diretório de salvamento: <span className="font-semibold ml-1">{storagePath}</span>
-      </div>
+      {/* Removido os botões de Selecionar Diretório e Salvar Dados */}
+      {/* Removida a caixa de informação sobre o diretório de salvamento */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
@@ -77,7 +56,7 @@ const DashboardPage: React.FC = () => {
             <div className="space-y-2">
               {deadlines.map((item, index) => (
                 <div key={index} className="flex justify-between items-center text-sm">
-                  <span className="truncate">{item.title}</span> {/* Adicionado truncate */}
+                  <span className="truncate">{item.title}</span>
                   <span className={item.urgent ? "text-red-500 font-semibold" : "text-muted-foreground"}>{item.date}</span>
                 </div>
               ))}
@@ -94,7 +73,7 @@ const DashboardPage: React.FC = () => {
             <div className="space-y-2">
               {tasks.map((item, index) => (
                 <div key={index} className="flex justify-between items-center text-sm">
-                  <span className="truncate">{item.title}</span> {/* Adicionado truncate */}
+                  <span className="truncate">{item.title}</span>
                   <span className="text-muted-foreground">{item.time}</span>
                 </div>
               ))}
@@ -111,7 +90,7 @@ const DashboardPage: React.FC = () => {
             <div className="space-y-2">
               {updates.map((item, index) => (
                 <div key={index} className="flex justify-between items-center text-sm">
-                  <span className="truncate">{item.title}</span> {/* Adicionado truncate */}
+                  <span className="truncate">{item.title}</span>
                   <span className="text-muted-foreground">{item.date}</span>
                 </div>
               ))}
@@ -128,7 +107,7 @@ const DashboardPage: React.FC = () => {
             <div className="space-y-2">
               {appointments.map((item, index) => (
                 <div key={index} className="flex justify-between items-center text-sm">
-                  <span className="truncate">{item.title}</span> {/* Adicionado truncate */}
+                  <span className="truncate">{item.title}</span>
                   <span className="text-muted-foreground">{item.time}</span>
                 </div>
               ))}

@@ -178,19 +178,14 @@ const initialData: AppData = {
 interface DataStorageContextType {
   data: AppData;
   setData: React.Dispatch<React.SetStateAction<AppData>>;
-  directoryHandle: FileSystemDirectoryHandle | null;
-  setDirectoryHandle: React.Dispatch<React.SetStateAction<FileSystemDirectoryHandle | null>>;
-  selectDirectory: () => Promise<void>;
-  saveData: () => Promise<void>;
-  storagePath: string;
+  saveData: () => Promise<void>; // Adicionado saveData de volta à interface
 }
 
 const DataStorageContext = createContext<DataStorageContextType | undefined>(undefined);
 
 export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [data, setData] = useState<AppData>(initialData);
-  const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle | null>(null);
-  const [storagePath, setStoragePath] = useState<string>('Não selecionado (usando armazenamento local do navegador)');
+  // Removido directoryHandle, setDirectoryHandle, storagePath
 
   const loadDataFromLocalStorage = useCallback(() => {
     const loadItem = <T,>(key: string, fallbackData: () => T): T => {
@@ -226,118 +221,37 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
       documents: loadItem('juridico_documents', getInitialDocumentsData),
       clientAccesses: loadItem('juridico_clientAccesses', getInitialClientAccessesData), // Novo: carregar acessos
     });
-    setStoragePath('Armazenamento local do navegador');
+    // Removido setStoragePath
   }, []);
 
-  const loadDataFromDirectory = useCallback(async () => {
-    if (!directoryHandle) {
-      loadDataFromLocalStorage();
-      return;
-    }
-
-    const loadFile = async <T,>(fileName: string, fallbackData: () => T): Promise<T> => {
-      try {
-        const fileHandle = await directoryHandle.getFileHandle(fileName);
-        const file = await fileHandle.getFile();
-        const content = await file.text();
-        console.log(`[DataStorage] Loading ${fileName} from directory:`, content ? 'Found' : 'Not found');
-        return JSON.parse(content);
-      } catch (e) {
-        console.warn(`[DataStorage] Arquivo ${fileName} não encontrado no diretório. Usando dados iniciais.`);
-        return fallbackData();
-      }
-    };
-
-    try {
-      const loadedData: AppData = {
-        clients: await loadFile('clients.json', getInitialClientsData),
-        processes: await loadFile('processes.json', getInitialProcessesData),
-        lawyers: await loadFile('lawyers.json', getInitialLawyersData),
-        userProfile: await loadFile('userProfile.json', getInitialProfileData),
-        financials: await loadFile('financials.json', getInitialFinancialsData),
-        documents: await loadFile('documents.json', getInitialDocumentsData),
-        clientAccesses: await loadFile('clientAccesses.json', getInitialClientAccessesData), // Novo: carregar acessos
-      };
-      setData(loadedData);
-      setStoragePath(directoryHandle.name);
-      toast.success('Dados carregados do diretório com sucesso!');
-    } catch (error) {
-      console.error('Erro ao carregar dados do diretório:', error);
-      toast.error('Erro ao carregar dados do diretório. Usando armazenamento local.');
-      loadDataFromLocalStorage();
-    }
-  }, [directoryHandle, loadDataFromLocalStorage]);
-
-  const selectDirectory = useCallback(async () => {
-    try {
-      if ('showDirectoryPicker' in window) {
-        const handle = await (window as any).showDirectoryPicker();
-        setDirectoryHandle(handle);
-        setStoragePath(handle.name);
-        toast.success('Diretório selecionado com sucesso!');
-      } else {
-        toast.warning('Seu navegador não suporta o salvamento em diretório. Usando armazenamento local.');
-        loadDataFromLocalStorage();
-      }
-    } catch (error: any) {
-      console.error('[DataStorage] Erro ao selecionar diretório:', error);
-      if (error.name !== 'AbortError') {
-        toast.error('A seleção de diretório foi cancelada ou falhou.');
-      }
-      loadDataFromLocalStorage(); // Fallback to local storage on error/abort
-    }
-  }, [loadDataFromLocalStorage]);
+  // Removido loadDataFromDirectory, selectDirectory
 
   const saveData = useCallback(async () => {
     try {
-      if (directoryHandle) {
-        const dataFiles = {
-          'clients.json': data.clients,
-          'processes.json': data.processes,
-          'lawyers.json': data.lawyers,
-          'userProfile.json': data.userProfile,
-          'financials.json': data.financials,
-          'documents.json': data.documents,
-          'clientAccesses.json': data.clientAccesses, // Novo: salvar acessos
-        };
-
-        for (const [fileName, content] of Object.entries(dataFiles)) {
-          const fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
-          const writable = await fileHandle.createWritable();
-          await writable.write(JSON.stringify(content, null, 2));
-          await writable.close();
-          console.log(`[DataStorage] Saved ${fileName} to directory.`);
-        }
-        toast.success('Dados salvos no diretório com sucesso!');
-      } else {
-        localStorage.setItem('juridico_clients', JSON.stringify(data.clients));
-        localStorage.setItem('juridico_processes', JSON.stringify(data.processes));
-        localStorage.setItem('juridico_lawyers', JSON.stringify(data.lawyers));
-        localStorage.setItem('juridico_userProfile', JSON.stringify(data.userProfile));
-        localStorage.setItem('juridico_financials', JSON.stringify(data.financials));
-        localStorage.setItem('juridico_documents', JSON.stringify(data.documents));
-        localStorage.setItem('juridico_clientAccesses', JSON.stringify(data.clientAccesses)); // Novo: salvar acessos
-        console.log('[DataStorage] Saved all data to localStorage.');
-        console.log('[DataStorage] Saved userProfile:', data.userProfile);
-        toast.success('Dados salvos no armazenamento local do navegador.');
-      }
+      // Removida a lógica de salvamento em diretório
+      localStorage.setItem('juridico_clients', JSON.stringify(data.clients));
+      localStorage.setItem('juridico_processes', JSON.stringify(data.processes));
+      localStorage.setItem('juridico_lawyers', JSON.stringify(data.lawyers));
+      localStorage.setItem('juridico_userProfile', JSON.stringify(data.userProfile));
+      localStorage.setItem('juridico_financials', JSON.stringify(data.financials));
+      localStorage.setItem('juridico_documents', JSON.stringify(data.documents));
+      localStorage.setItem('juridico_clientAccesses', JSON.stringify(data.clientAccesses)); // Novo: salvar acessos
+      console.log('[DataStorage] Saved all data to localStorage.');
+      console.log('[DataStorage] Saved userProfile:', data.userProfile);
+      toast.success('Dados salvos no armazenamento local do navegador.');
     } catch (error) {
       console.error('[DataStorage] Erro ao salvar dados:', error);
       toast.error('Erro ao salvar os dados.');
     }
-  }, [data, directoryHandle]);
+  }, [data]);
 
   // Load data on component mount
   useEffect(() => {
-    if (directoryHandle) {
-      loadDataFromDirectory();
-    } else {
-      loadDataFromLocalStorage();
-    }
-  }, [directoryHandle, loadDataFromDirectory, loadDataFromLocalStorage]);
+    loadDataFromLocalStorage(); // Sempre carrega do localStorage
+  }, [loadDataFromLocalStorage]);
 
   return (
-    <DataStorageContext.Provider value={{ data, setData, directoryHandle, setDirectoryHandle, selectDirectory, saveData, storagePath }}>
+    <DataStorageContext.Provider value={{ data, setData, saveData }}> {/* Removido directoryHandle, setDirectoryHandle, selectDirectory, storagePath */}
       {children}
     </DataStorageContext.Provider>
   );

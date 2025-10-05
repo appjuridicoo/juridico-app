@@ -47,7 +47,7 @@ const getFileIconColorClass = (fileName: string) => {
 };
 
 const DocumentsPage: React.FC = () => {
-  const { data, setData, saveData, directoryHandle } = useDataStorage();
+  const { data, setData, saveData } = useDataStorage(); // Removido directoryHandle
   const fileUploaderRef = useRef<HTMLInputElement>(null);
   const [isEditorModalOpen, setIsEditorModalOpen] = useState(false);
   const [editingFileContent, setEditingFileContent] = useState<DocumentItem | null>(null);
@@ -72,26 +72,13 @@ const DocumentsPage: React.FC = () => {
         size: file.size,
       };
 
-      if (directoryHandle) {
-        try {
-          const fileHandle = await directoryHandle.getFileHandle(file.name, { create: true });
-          const writable = await fileHandle.createWritable();
-          await writable.write(file);
-          await writable.close();
-          toast.success(`Arquivo "${file.name}" enviado e salvo no diretório!`);
-        } catch (error) {
-          console.error('Erro ao salvar arquivo no diretório:', error);
-          toast.error(`Erro ao salvar "${file.name}" no diretório.`, { description: "Verifique as permissões ou se o diretório está selecionado." });
-          continue;
-        }
-      } else {
-        toast.warning(`"${file.name}" enviado. Não foi salvo no disco: Diretório não selecionado.`, { description: "Selecione um diretório no Dashboard para salvar arquivos." });
-      }
-
+      // A lógica de salvamento em diretório foi removida.
+      // Apenas adicionamos o metadado do arquivo à lista.
       setData(prev => ({
         ...prev,
         documents: [newFile, ...prev.documents]
       }));
+      toast.success(`Arquivo "${file.name}" adicionado à lista de documentos.`);
     }
     saveData();
     if (fileUploaderRef.current) fileUploaderRef.current.value = '';
@@ -117,15 +104,7 @@ const DocumentsPage: React.FC = () => {
 
   const handleDeleteItem = async (id: number, name: string, type: 'folder' | 'file') => {
     if (confirm(`Tem certeza que deseja excluir "${name}"?`)) {
-      if (type === 'file' && directoryHandle) {
-        try {
-          await directoryHandle.removeEntry(name);
-          toast.success(`Arquivo "${name}" excluído do diretório.`);
-        } catch (error) {
-          console.warn('Não foi possível excluir o arquivo do diretório. Removendo apenas o metadado.', error);
-          toast.warning(`Aviso: O arquivo "${name}" não pôde ser excluído do diretório. Removendo apenas o metadado.`, { description: "Verifique as permissões ou se o arquivo existe." });
-        }
-      }
+      // A lógica de exclusão do arquivo físico do diretório foi removida.
       setData(prev => ({
         ...prev,
         documents: prev.documents.filter(item => item.id !== id)
@@ -152,25 +131,7 @@ const DocumentsPage: React.FC = () => {
       return;
     }
 
-    if (isRenaming.type === 'file' && directoryHandle) {
-      try {
-        // Para renomear um arquivo no File System Access API, é preciso copiar e depois deletar o original
-        const oldFileHandle = await directoryHandle.getFileHandle(oldName);
-        const oldFile = await oldFileHandle.getFile();
-
-        const newFileHandle = await directoryHandle.getFileHandle(updatedName, { create: true });
-        const writable = await newFileHandle.createWritable();
-        await writable.write(oldFile);
-        await writable.close();
-
-        await directoryHandle.removeEntry(oldName);
-        toast.success(`Arquivo "${oldName}" renomeado para "${updatedName}" no diretório.`);
-      } catch (error) {
-        console.error('Erro ao renomear arquivo no diretório:', error);
-        toast.error(`Erro ao renomear "${oldName}" no diretório.`, { description: "Verifique as permissões ou se o novo nome já existe." });
-        return; // Aborta se a renomeação do arquivo físico falhar
-      }
-    }
+    // A lógica de renomeação do arquivo físico do diretório foi removida.
 
     setData(prev => ({
       ...prev,
@@ -188,59 +149,16 @@ const DocumentsPage: React.FC = () => {
       toast.error('A edição de conteúdo é apenas para arquivos.');
       return;
     }
-    if (!directoryHandle) {
-      toast.error("Por favor, selecione um diretório no Dashboard primeiro para habilitar a edição do conteúdo do arquivo.", { description: "A edição de conteúdo requer acesso ao sistema de arquivos." });
-      return;
-    }
-
-    const fileExtension = file.name.toLowerCase().split('.').pop();
-    const binaryExtensions = ['pdf', 'docx', 'xlsx', 'jpg', 'png', 'zip', 'rar'];
-
-    if (fileExtension && binaryExtensions.includes(fileExtension)) {
-      toast.warning(`O arquivo ${file.name} é de formato binário (${fileExtension.toUpperCase()}). A edição do conteúdo só está disponível para arquivos de texto simples.`, { duration: 5000 });
-      return;
-    }
-
-    setEditingFileContent(file);
-    setIsEditorModalOpen(true);
-    setCurrentFileContent('Carregando conteúdo...');
-
-    try {
-      const fileHandle = await directoryHandle.getFileHandle(file.name, { create: false });
-      const fileBlob = await fileHandle.getFile();
-      const content = await fileBlob.text();
-      setCurrentFileContent(content);
-    } catch (error) {
-      console.error('Erro ao ler o arquivo para edição:', error);
-      setCurrentFileContent(`Erro: O arquivo não foi encontrado no diretório selecionado ou não pôde ser lido. Certifique-se de que o nome é exato. Se for um novo arquivo, apenas digite o conteúdo e salve.`);
-    }
+    // A edição de conteúdo de arquivos locais foi desabilitada, pois não há mais acesso ao diretório.
+    toast.error("A edição de conteúdo de arquivos locais foi desabilitada. Esta funcionalidade requer acesso ao sistema de arquivos, que não está mais ativo.", { duration: 5000 });
+    return;
   };
 
   const handleSaveContent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingFileContent || !directoryHandle) return;
-
-    try {
-      const fileHandle = await directoryHandle.getFileHandle(editingFileContent.name, { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(currentFileContent);
-      await writable.close();
-
-      setData(prev => ({
-        ...prev,
-        documents: prev.documents.map(doc =>
-          doc.id === editingFileContent.id
-            ? { ...doc, date: new Date().toISOString().split('T')[0], size: currentFileContent.length }
-            : doc
-        )
-      }));
-      saveData();
-      toast.success(`Conteúdo de "${editingFileContent.name}" salvo com sucesso!`);
-      setIsEditorModalOpen(false);
-    } catch (error) {
-      console.error('Erro ao salvar o conteúdo do arquivo:', error);
-      toast.error(`Erro ao salvar o conteúdo de "${editingFileContent.name}". Verifique as permissões.`);
-    }
+    // A lógica de salvamento de conteúdo de arquivos locais foi desabilitada.
+    toast.error("O salvamento de conteúdo de arquivos locais foi desabilitado. Esta funcionalidade requer acesso ao sistema de arquivos, que não está mais ativo.", { duration: 5000 });
+    setIsEditorModalOpen(false);
   };
 
   return (
