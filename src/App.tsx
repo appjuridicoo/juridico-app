@@ -16,6 +16,7 @@ import ResearchPage from "./pages/ResearchPage"; // Nova página de Pesquisa Jur
 import ClientPortalPage from "./pages/ClientPortalPage"; // Nova página de Portal do Cliente
 import ChatPage from "./pages/ChatPage"; // Nova página de Chat Interno
 import SettingsPage from "./pages/SettingsPage"; // Nova página de Configurações
+import HelpPage from "./pages/HelpPage"; // Importa a nova página de Ajuda
 import NotFound from "./pages/NotFound";
 import { DataStorageProvider } from "./hooks/use-data-storage"; // Importa o provedor de dados
 
@@ -41,8 +42,7 @@ const App = () => (
               <Route path="/portal" element={<ClientPortalPage />} />
               <Route path="/chat" element={<ChatPage />} />
               <Route path="/settings" element={<SettingsPage />} />
-              {/* Rotas de Ajuda e Sair podem ser tratadas com modais ou redirecionamentos */}
-              <Route path="/help" element={<h1 className="text-2xl font-bold">Página de Ajuda</h1>} />
+              <Route path="/help" element={<HelpPage />} /> {/* Rota para a página de Ajuda */}
               <Route path="/logout" element={<h1 className="text-2xl font-bold">Fazendo Logout...</h1>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
