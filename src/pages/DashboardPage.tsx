@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Importando CardDescription
-import { Calendar, Clock, FileText, Users, Bell, Briefcase, ClipboardList, DollarSign, Gavel, UserRound } from 'lucide-react'; // Removido ArrowUpRight, PlusCircle
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Calendar, Clock, FileText, Users, Bell, Briefcase, ClipboardList, DollarSign, Gavel, UserRound } from 'lucide-react';
 import { useDataStorage } from '@/hooks/use-data-storage';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -112,11 +112,11 @@ const DashboardPage: React.FC = () => {
             <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => navigate('/calendar')}>Ver todos</Button>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="space-y-3">
+            <div className="space-y-3"> {/* Aumentado o espaçamento entre os itens */}
               {deadlines.map((item, index) => (
-                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm py-2 border-b last:border-b-0 border-muted-foreground/20">
-                  <span className="truncate font-medium">{item.title}</span>
-                  <span className={item.urgent ? "text-red-500 font-semibold text-right sm:text-left" : "text-muted-foreground text-right sm:text-left"}>{item.date}</span>
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-start text-sm py-2 border-b last:border-b-0 border-muted-foreground/20">
+                  <span className="truncate font-medium leading-tight">{item.title}</span> {/* Adicionado leading-tight */}
+                  <span className={item.urgent ? "text-red-500 font-semibold text-right sm:text-left mt-1 sm:mt-0" : "text-muted-foreground text-right sm:text-left mt-1 sm:mt-0"}>{item.date}</span>
                 </div>
               ))}
             </div>
@@ -132,11 +132,11 @@ const DashboardPage: React.FC = () => {
             <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => toast.info("Funcionalidade de tarefas em desenvolvimento!")}>Ver todas</Button>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="space-y-3">
+            <div className="space-y-3"> {/* Aumentado o espaçamento entre os itens */}
               {tasks.map((item, index) => (
-                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm py-2 border-b last:border-b-0 border-muted-foreground/20">
-                  <span className="truncate font-medium">{item.title}</span>
-                  <span className="text-muted-foreground text-right sm:text-left">{item.time}</span>
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-start text-sm py-2 border-b last:border-b-0 border-muted-foreground/20">
+                  <span className="truncate font-medium leading-tight">{item.title}</span> {/* Adicionado leading-tight */}
+                  <span className="text-muted-foreground text-right sm:text-left mt-1 sm:mt-0">{item.time}</span>
                 </div>
               ))}
             </div>
@@ -152,11 +152,11 @@ const DashboardPage: React.FC = () => {
             <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => toast.info("Funcionalidade de atualizações em desenvolvimento!")}>Ver todas</Button>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="space-y-3">
+            <div className="space-y-3"> {/* Aumentado o espaçamento entre os itens */}
               {updates.map((item, index) => (
-                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm py-2 border-b last:border-b-0 border-muted-foreground/20">
-                  <span className="truncate font-medium">{item.title}</span>
-                  <span className="text-muted-foreground text-right sm:text-left">{item.date}</span>
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-start text-sm py-2 border-b last:border-b-0 border-muted-foreground/20">
+                  <span className="truncate font-medium leading-tight">{item.title}</span> {/* Adicionado leading-tight */}
+                  <span className="text-muted-foreground text-right sm:text-left mt-1 sm:mt-0">{item.date}</span>
                 </div>
               ))}
             </div>
@@ -172,11 +172,11 @@ const DashboardPage: React.FC = () => {
             <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => navigate('/calendar')}>Ver agenda completa</Button>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="space-y-3">
+            <div className="space-y-3"> {/* Aumentado o espaçamento entre os itens */}
               {appointments.map((item, index) => (
-                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm py-2 border-b last:border-b-0 border-muted-foreground/20">
-                  <span className="truncate font-medium">{item.title}</span>
-                  <span className="text-muted-foreground text-right sm:text-left">{item.time}</span>
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-start text-sm py-2 border-b last:border-b-0 border-muted-foreground/20">
+                  <span className="truncate font-medium leading-tight">{item.title}</span> {/* Adicionado leading-tight */}
+                  <span className="text-muted-foreground text-right sm:text-left mt-1 sm:mt-0">{item.time}</span>
                 </div>
               ))}
             </div>
