@@ -134,7 +134,11 @@ const getInitialDocumentsData = (): DocumentItem[] => [
   { id: 6, type: 'file', name: 'Contrato de Prestação de Serviços.docx', date: '2023-10-20', size: 1200000 },
   { id: 7, type: 'file', name: 'Planilha de Honorários.xlsx', date: '2023-10-15', size: 856000 },
   { id: 8, type: 'file', name: 'Sentença - Processo 67890-2023.pdf', date: '2023-10-10', size: 3100000 },
-  { id: 9, type: 'file', name: 'Notas.txt', date: '2023-10-25', size: 1024 }
+  { id: 9, type: 'file', name: 'Notas.txt', date: '2023-10-25', size: 1024 },
+  { id: 10, type: 'file', name: 'Parecer Jurídico.docx', date: '2023-10-26', size: 1500000 },
+  { id: 11, type: 'file', name: 'Procuração.pdf', date: '2023-10-27', size: 500000 },
+  { id: 12, type: 'folder', name: 'Documentos Fiscais', count: 5 },
+  { id: 13, type: 'file', name: 'Recibo de Pagamento.pdf', date: '2023-10-28', size: 300000 },
 ];
 
 const initialData: AppData = {

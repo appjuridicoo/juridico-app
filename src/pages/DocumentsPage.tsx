@@ -269,7 +269,7 @@ const DocumentsPage: React.FC = () => {
         onChange={handleFileChange}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"> {/* Ajustado para 3 colunas em telas grandes */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {data.documents.map(item => (
           <Card
             key={item.id}
