@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRight, Calendar, Clock, FileText, PlusCircle, Users, Bell, Briefcase, ClipboardList, DollarSign, Gavel, UserRound } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Importando CardDescription
+import { Calendar, Clock, FileText, Users, Bell, Briefcase, ClipboardList, DollarSign, Gavel, UserRound } from 'lucide-react'; // Removido ArrowUpRight, PlusCircle
 import { useDataStorage } from '@/hooks/use-data-storage';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -54,7 +54,7 @@ const DashboardPage: React.FC = () => {
       <h2 className="text-4xl font-bold text-foreground">Bem-vindo(a) de volta, {data.userProfile.displayName}!</h2>
       <p className="text-lg text-muted-foreground">Aqui está um resumo rápido das suas atividades e do seu escritório.</p>
 
-      {/* Seção de Métricas Principais */}
+      {/* Seção de Métricas Principais (Mantida como está, pois você gostou) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -101,8 +101,9 @@ const DashboardPage: React.FC = () => {
         </Card>
       </div>
 
-      {/* Seção de Atividades Recentes */}
+      {/* Seção de Atividades Recentes (Melhorada) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Card para Próximos Prazos */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -113,15 +114,16 @@ const DashboardPage: React.FC = () => {
           <CardContent className="pt-4">
             <div className="space-y-3">
               {deadlines.map((item, index) => (
-                <div key={index} className="flex justify-between items-center text-sm">
-                  <span className="truncate">{item.title}</span>
-                  <span className={item.urgent ? "text-red-500 font-semibold" : "text-muted-foreground"}>{item.date}</span>
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm py-2 border-b last:border-b-0 border-muted-foreground/20">
+                  <span className="truncate font-medium">{item.title}</span>
+                  <span className={item.urgent ? "text-red-500 font-semibold text-right sm:text-left" : "text-muted-foreground text-right sm:text-left"}>{item.date}</span>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
+        {/* Card para Minhas Tarefas Hoje */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -132,15 +134,16 @@ const DashboardPage: React.FC = () => {
           <CardContent className="pt-4">
             <div className="space-y-3">
               {tasks.map((item, index) => (
-                <div key={index} className="flex justify-between items-center text-sm">
-                  <span className="truncate">{item.title}</span>
-                  <span className="text-muted-foreground">{item.time}</span>
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm py-2 border-b last:border-b-0 border-muted-foreground/20">
+                  <span className="truncate font-medium">{item.title}</span>
+                  <span className="text-muted-foreground text-right sm:text-left">{item.time}</span>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
+        {/* Card para Últimas Atualizações */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -151,15 +154,16 @@ const DashboardPage: React.FC = () => {
           <CardContent className="pt-4">
             <div className="space-y-3">
               {updates.map((item, index) => (
-                <div key={index} className="flex justify-between items-center text-sm">
-                  <span className="truncate">{item.title}</span>
-                  <span className="text-muted-foreground">{item.date}</span>
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm py-2 border-b last:border-b-0 border-muted-foreground/20">
+                  <span className="truncate font-medium">{item.title}</span>
+                  <span className="text-muted-foreground text-right sm:text-left">{item.date}</span>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
+        {/* Card para Agenda do Dia */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -170,9 +174,9 @@ const DashboardPage: React.FC = () => {
           <CardContent className="pt-4">
             <div className="space-y-3">
               {appointments.map((item, index) => (
-                <div key={index} className="flex justify-between items-center text-sm">
-                  <span className="truncate">{item.title}</span>
-                  <span className="text-muted-foreground">{item.time}</span>
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm py-2 border-b last:border-b-0 border-muted-foreground/20">
+                  <span className="truncate font-medium">{item.title}</span>
+                  <span className="text-muted-foreground text-right sm:text-left">{item.time}</span>
                 </div>
               ))}
             </div>
@@ -180,48 +184,50 @@ const DashboardPage: React.FC = () => {
         </Card>
       </div>
 
-      {/* Seção de Acesso Rápido */}
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold">Acesso Rápido</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="flex flex-col h-auto py-6 px-4 items-center justify-center text-center group hover:bg-accent/50 transition-colors" onClick={() => navigate('/processes')}>
-              <Briefcase className="h-8 w-8 mb-2 text-primary group-hover:text-primary-foreground transition-colors" />
-              <span className="text-sm font-medium text-foreground group-hover:text-accent-foreground transition-colors">Novo Processo</span>
-            </Button>
-            <Button variant="outline" className="flex flex-col h-auto py-6 px-4 items-center justify-center text-center group hover:bg-accent/50 transition-colors" onClick={() => toast.info("Funcionalidade de nova tarefa em desenvolvimento!")}>
-              <FileText className="h-8 w-8 mb-2 text-primary group-hover:text-primary-foreground transition-colors" />
-              <span className="text-sm font-medium text-foreground group-hover:text-accent-foreground transition-colors">Nova Tarefa</span>
-            </Button>
-            <Button variant="outline" className="flex flex-col h-auto py-6 px-4 items-center justify-center text-center group hover:bg-accent/50 transition-colors" onClick={() => navigate('/calendar')}>
-              <Calendar className="h-8 w-8 mb-2 text-primary group-hover:text-primary-foreground transition-colors" />
-              <span className="text-sm font-medium text-foreground group-hover:text-accent-foreground transition-colors">Agendar Compromisso</span>
-            </Button>
-            <Button variant="outline" className="flex flex-col h-auto py-6 px-4 items-center justify-center text-center group hover:bg-accent/50 transition-colors" onClick={() => navigate('/financial')}>
-              <DollarSign className="h-8 w-8 mb-2 text-primary group-hover:text-primary-foreground transition-colors" />
-              <span className="text-sm font-medium text-foreground group-hover:text-accent-foreground transition-colors">Lançar Receita</span>
-            </Button>
-            <Button variant="outline" className="flex flex-col h-auto py-6 px-4 items-center justify-center text-center group hover:bg-accent/50 transition-colors" onClick={() => navigate('/clients')}>
-              <UserRound className="h-8 w-8 mb-2 text-primary group-hover:text-primary-foreground transition-colors" />
-              <span className="text-sm font-medium text-foreground group-hover:text-accent-foreground transition-colors">Novo Cliente</span>
-            </Button>
-            <Button variant="outline" className="flex flex-col h-auto py-6 px-4 items-center justify-center text-center group hover:bg-accent/50 transition-colors" onClick={() => navigate('/documents')}>
-              <FileText className="h-8 w-8 mb-2 text-primary group-hover:text-primary-foreground transition-colors" />
-              <span className="text-sm font-medium text-foreground group-hover:text-accent-foreground transition-colors">Upload Documento</span>
-            </Button>
-            <Button variant="outline" className="flex flex-col h-auto py-6 px-4 items-center justify-center text-center group hover:bg-accent/50 transition-colors" onClick={() => navigate('/publications')}>
-              <Bell className="h-8 w-8 mb-2 text-primary group-hover:text-primary-foreground transition-colors" />
-              <span className="text-sm font-medium text-foreground group-hover:text-accent-foreground transition-colors">Ver Publicações</span>
-            </Button>
-            <Button variant="outline" className="flex flex-col h-auto py-6 px-4 items-center justify-center text-center group hover:bg-accent/50 transition-colors" onClick={() => navigate('/settings')}>
-              <Gavel className="h-8 w-8 mb-2 text-primary group-hover:text-primary-foreground transition-colors" />
-              <span className="text-sm font-medium text-foreground group-hover:text-accent-foreground transition-colors">Gerenciar Advogados</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Seção de Acesso Rápido (Melhorada com Cards individuais) */}
+      <h3 className="text-2xl font-bold text-foreground mt-8 mb-4">Acesso Rápido</h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <Card className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent/50 transition-colors group" onClick={() => navigate('/processes')}>
+          <Briefcase className="h-10 w-10 mb-3 text-primary group-hover:text-primary-foreground transition-colors" />
+          <CardTitle className="text-lg font-semibold text-foreground group-hover:text-accent-foreground transition-colors">Novo Processo</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground group-hover:text-accent-foreground/80 transition-colors">Crie um novo processo judicial</CardDescription>
+        </Card>
+        <Card className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent/50 transition-colors group" onClick={() => toast.info("Funcionalidade de nova tarefa em desenvolvimento!")}>
+          <ClipboardList className="h-10 w-10 mb-3 text-primary group-hover:text-primary-foreground transition-colors" />
+          <CardTitle className="text-lg font-semibold text-foreground group-hover:text-accent-foreground transition-colors">Nova Tarefa</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground group-hover:text-accent-foreground/80 transition-colors">Adicione uma nova tarefa à sua lista</CardDescription>
+        </Card>
+        <Card className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent/50 transition-colors group" onClick={() => navigate('/calendar')}>
+          <Calendar className="h-10 w-10 mb-3 text-primary group-hover:text-primary-foreground transition-colors" />
+          <CardTitle className="text-lg font-semibold text-foreground group-hover:text-accent-foreground transition-colors">Agendar Compromisso</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground group-hover:text-accent-foreground/80 transition-colors">Marque audiências, reuniões e prazos</CardDescription>
+        </Card>
+        <Card className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent/50 transition-colors group" onClick={() => navigate('/financial')}>
+          <DollarSign className="h-10 w-10 mb-3 text-primary group-hover:text-primary-foreground transition-colors" />
+          <CardTitle className="text-lg font-semibold text-foreground group-hover:text-accent-foreground transition-colors">Lançar Financeiro</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground group-hover:text-accent-foreground/80 transition-colors">Registre receitas ou despesas</CardDescription>
+        </Card>
+        <Card className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent/50 transition-colors group" onClick={() => navigate('/clients')}>
+          <Users className="h-10 w-10 mb-3 text-primary group-hover:text-primary-foreground transition-colors" />
+          <CardTitle className="text-lg font-semibold text-foreground group-hover:text-accent-foreground transition-colors">Novo Cliente</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground group-hover:text-accent-foreground/80 transition-colors">Cadastre um novo cliente</CardDescription>
+        </Card>
+        <Card className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent/50 transition-colors group" onClick={() => navigate('/documents')}>
+          <FileText className="h-10 w-10 mb-3 text-primary group-hover:text-primary-foreground transition-colors" />
+          <CardTitle className="text-lg font-semibold text-foreground group-hover:text-accent-foreground transition-colors">Upload Documento</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground group-hover:text-accent-foreground/80 transition-colors">Envie documentos importantes</CardDescription>
+        </Card>
+        <Card className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent/50 transition-colors group" onClick={() => navigate('/publications')}>
+          <Bell className="h-10 w-10 mb-3 text-primary group-hover:text-primary-foreground transition-colors" />
+          <CardTitle className="text-lg font-semibold text-foreground group-hover:text-accent-foreground transition-colors">Ver Publicações</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground group-hover:text-accent-foreground/80 transition-colors">Acompanhe diários oficiais</CardDescription>
+        </Card>
+        <Card className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent/50 transition-colors group" onClick={() => navigate('/settings')}>
+          <Gavel className="h-10 w-10 mb-3 text-primary group-hover:text-primary-foreground transition-colors" />
+          <CardTitle className="text-lg font-semibold text-foreground group-hover:text-accent-foreground transition-colors">Gerenciar Advogados</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground group-hover:text-accent-foreground/80 transition-colors">Adicione e edite advogados</CardDescription>
+        </Card>
+      </div>
     </div>
   );
 };
