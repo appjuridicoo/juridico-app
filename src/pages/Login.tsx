@@ -45,6 +45,24 @@ const Login: React.FC = () => {
             }}
             theme="light" // Usando tema claro, pode ser ajustado para 'dark' ou dinâmico
             redirectTo={window.location.origin + '/'} // Redireciona para a raiz após o login
+            localization={{
+              variables: {
+                sign_in: {
+                  email_label: 'Endereço de e-mail',
+                  password_label: 'Sua senha',
+                  email_input_placeholder: 'Seu endereço de e-mail',
+                  password_input_placeholder: 'Sua senha',
+                  button_label: 'Entrar',
+                  link_text: 'Já tem uma conta? Entrar',
+                },
+                forgotten_password: {
+                  link_text: 'Esqueceu sua senha?',
+                },
+                sign_up: {
+                  link_text: 'Não tem uma conta? Cadastre-se',
+                },
+              },
+            }}
           />
         </div>
       </div>
