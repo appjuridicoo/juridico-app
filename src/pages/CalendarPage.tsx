@@ -237,12 +237,12 @@ const CalendarPage: React.FC = () => {
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="appointmentProcess" className="text-right">Processo</Label>
-              <Select name="appointmentProcess" defaultValue="">
+              <Select name="appointmentProcess" defaultValue="none"> {/* Alterado para 'none' */}
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Nenhum" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem> {/* Alterado para 'none' */}
                   {data.processes.map(process => (
                     <SelectItem key={process.id} value={process.id.toString()}>{process.number} - {process.client}</SelectItem>
                   ))}

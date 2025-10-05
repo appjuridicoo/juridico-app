@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Edit, Plus, Search, Trash, Eye, Archive } from 'lucide-react';
@@ -16,9 +16,9 @@ const ProcessesPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProcess, setEditingProcess] = useState<Process | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [filterResponsible, setFilterResponsible] = useState('');
-  const [filterType, setFilterType] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterResponsible, setFilterResponsible] = useState('all');
+  const [filterType, setFilterType] = useState('all');
 
   const statusLabels = {
     active: 'Ativo',
@@ -32,9 +32,9 @@ const ProcessesPage: React.FC = () => {
       process.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       process.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
       process.opposingParty.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === '' || process.status === filterStatus;
-    const matchesResponsible = filterResponsible === '' || process.responsible === filterResponsible;
-    const matchesType = filterType === '' || process.type === filterType;
+    const matchesStatus = filterStatus === 'all' || process.status === filterStatus;
+    const matchesResponsible = filterResponsible === 'all' || process.responsible === filterResponsible;
+    const matchesType = filterType === 'all' || process.type === filterType;
     return matchesSearch && matchesStatus && matchesResponsible && matchesType;
   });
 
@@ -130,7 +130,7 @@ const ProcessesPage: React.FC = () => {
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="active">Ativo</SelectItem>
               <SelectItem value="suspended">Suspenho</SelectItem>
               <SelectItem value="archived">Arquivado</SelectItem>
@@ -145,7 +145,7 @@ const ProcessesPage: React.FC = () => {
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               {data.lawyers.map(lawyer => (
                 <SelectItem key={lawyer.id} value={lawyer.name}>{lawyer.name}</SelectItem>
               ))}
@@ -159,7 +159,7 @@ const ProcessesPage: React.FC = () => {
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="Cível">Cível</SelectItem>
               <SelectItem value="Criminal">Criminal</SelectItem>
               <SelectItem value="Trabalhista">Trabalhista</SelectItem>

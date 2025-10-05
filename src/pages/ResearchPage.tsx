@@ -30,7 +30,7 @@ const ResearchPage: React.FC = () => {
     const encodedSearchTerm = encodeURIComponent(searchTerm);
     let targetUrl;
 
-    if (tribunalValue && jurisSearchUrlMap[tribunalValue]) {
+    if (tribunalValue && tribunalValue !== 'all' && jurisSearchUrlMap[tribunalValue]) { // Verificar se não é 'all'
       if (tribunalValue === 'tst') {
         toast.info('A busca no TST deve ser feita diretamente no site. Copie o termo e cole na página que será aberta.');
         targetUrl = jurisSearchUrlMap.tst;
@@ -59,12 +59,12 @@ const ResearchPage: React.FC = () => {
               required
             />
           </div>
-          <Select defaultValue="" name="research-tribunal-select">
+          <Select defaultValue="all" name="research-tribunal-select"> {/* Alterado para 'all' */}
             <SelectTrigger id="research-tribunal-select" className="w-full md:w-[200px]">
               <SelectValue placeholder="Todos os Tribunais" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os Tribunais</SelectItem>
+              <SelectItem value="all">Todos os Tribunais</SelectItem> {/* Alterado para 'all' */}
               <SelectItem value="stf">Supremo Tribunal Federal</SelectItem>
               <SelectItem value="stj">Superior Tribunal de Justiça</SelectItem>
               <SelectItem value="tst">Tribunal Superior do Trabalho</SelectItem>
