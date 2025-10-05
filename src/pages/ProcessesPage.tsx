@@ -7,9 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Plus, Search, Trash, Eye, Archive } from 'lucide-react';
+import { Edit, Plus, Search, Trash, Eye, Archive, Briefcase, User, Gavel, Calendar } from 'lucide-react';
 import { useDataStorage, Process } from '@/hooks/use-data-storage';
 import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 const ProcessesPage: React.FC = () => {
   const { data, setData, saveData } = useDataStorage();
@@ -170,60 +172,52 @@ const ProcessesPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="rounded-md border overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nº do Processo</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Parte Contrária</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Advogado Responsável</TableHead>
-              <TableHead>Última Movimentação</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredProcesses.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
-                  Nenhum processo encontrado.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredProcesses.map((process) => (
-                <TableRow key={process.id}>
-                  <TableCell className="font-medium text-blue-600 dark:text-blue-400">{process.number}</TableCell>
-                  <TableCell>{process.client}</TableCell>
-                  <TableCell>{process.opposingParty}</TableCell>
-                  <TableCell>{process.type}</TableCell>
-                  <TableCell>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(process.status)}`}>
-                      {statusLabels[process.status]}
-                    </span>
-                  </TableCell>
-                  <TableCell>{process.responsible}</TableCell>
-                  <TableCell>{new Date(process.lastUpdate).toLocaleDateString('pt-BR')}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => toast.info("Funcionalidade de ver detalhes em desenvolvimento!")}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleEditProcess(process)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => toast.info("Funcionalidade de arquivar em desenvolvimento!")}>
-                      <Archive className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteProcess(process.id)}>
-                      <Trash className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredProcesses.length === 0 ? (
+          <p className="col-span-full text-center text-muted-foreground py-10">Nenhum processo encontrado.</p>
+        ) : (
+          filteredProcesses.map((process) => (
+            <Card key={process.id} className="relative flex flex-col">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Briefcase className="h-5 w-5 text-primary" />
+                    {process.number}
+                  </CardTitle>
+                  <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", getStatusBadgeClass(process.status))}>
+                    {statusLabels[process.status]}
+                  </span>
+                </div>
+                <CardDescription className="mt-1">Cliente: {process.client}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1 space-y-2 text-sm text-muted-foreground">
+                <div className="flex items-center">
+                  <User className="h-4 w-4 mr-2" /> Parte Contrária: {process.opposingParty}
+                </div>
+                <div className="flex items-center">
+                  <Gavel className="h-4 w-4 mr-2" /> Tipo: {process.type}
+                </div>
+                <div className="flex items-center">
+                  <User className="h-4 w-4 mr-2" /> Responsável: {process.responsible}
+                </div>
+                <div className="flex items-center">
+                  <Calendar className="h-4 w-4 mr-2" /> Última Mov.: {new Date(process.lastUpdate).toLocaleDateString('pt-BR')}
+                </div>
+              </CardContent>
+              <div className="flex justify-end p-4 pt-0 gap-2">
+                <Button variant="outline" size="sm" onClick={() => toast.info("Funcionalidade de ver detalhes em desenvolvimento!")}>
+                  <Eye className="h-4 w-4 mr-2" /> Detalhes
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleEditProcess(process)}>
+                  <Edit className="h-4 w-4 mr-2" /> Editar
+                </Button>
+                <Button variant="destructive" size="sm" onClick={() => handleDeleteProcess(process.id)}>
+                  <Trash className="h-4 w-4 mr-2" /> Excluir
+                </Button>
+              </div>
+            </Card>
+          ))
+        )}
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
