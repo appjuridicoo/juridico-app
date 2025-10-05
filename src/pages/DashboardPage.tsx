@@ -14,10 +14,10 @@ const DashboardPage: React.FC = () => {
 
   // Exemplo de dados para widgets (pode ser refinado para usar dados reais do `data` hook)
   const deadlines = [
-    { title: 'Processo nº 12345/2023', date: 'Hoje', urgent: true },
-    { title: 'Processo nº 67890/2023', date: 'Amanhã', urgent: false },
-    { title: 'Processo nº 54321/2023', date: 'Em 3 dias', urgent: false },
-    { title: 'Processo nº 98765/2023', date: 'Em 5 dias', urgent: false },
+    { title: 'Processo nº 12345/2023 - Petição Inicial', date: 'Hoje', urgent: true },
+    { title: 'Processo nº 67890/2023 - Prazo para Contestação', date: 'Amanhã', urgent: false },
+    { title: 'Processo nº 54321/2023 - Audiência de Conciliação', date: 'Em 3 dias', urgent: false },
+    { title: 'Processo nº 98765/2023 - Recurso de Apelação', date: 'Em 5 dias', urgent: false },
   ];
 
   const tasks = [
@@ -51,7 +51,7 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end gap-4">
+      <div className="flex flex-col sm:flex-row justify-end gap-4"> {/* Ajustado para empilhar em mobile */}
         <Button onClick={handleSelectDirectory} variant="outline" className="flex items-center gap-2">
           <FolderOpen className="h-4 w-4" />
           Selecionar Diretório
@@ -77,7 +77,7 @@ const DashboardPage: React.FC = () => {
             <div className="space-y-2">
               {deadlines.map((item, index) => (
                 <div key={index} className="flex justify-between items-center text-sm">
-                  <span>{item.title}</span>
+                  <span className="truncate">{item.title}</span> {/* Adicionado truncate */}
                   <span className={item.urgent ? "text-red-500 font-semibold" : "text-muted-foreground"}>{item.date}</span>
                 </div>
               ))}
@@ -94,7 +94,7 @@ const DashboardPage: React.FC = () => {
             <div className="space-y-2">
               {tasks.map((item, index) => (
                 <div key={index} className="flex justify-between items-center text-sm">
-                  <span>{item.title}</span>
+                  <span className="truncate">{item.title}</span> {/* Adicionado truncate */}
                   <span className="text-muted-foreground">{item.time}</span>
                 </div>
               ))}
@@ -111,7 +111,7 @@ const DashboardPage: React.FC = () => {
             <div className="space-y-2">
               {updates.map((item, index) => (
                 <div key={index} className="flex justify-between items-center text-sm">
-                  <span>{item.title}</span>
+                  <span className="truncate">{item.title}</span> {/* Adicionado truncate */}
                   <span className="text-muted-foreground">{item.date}</span>
                 </div>
               ))}
@@ -128,7 +128,7 @@ const DashboardPage: React.FC = () => {
             <div className="space-y-2">
               {appointments.map((item, index) => (
                 <div key={index} className="flex justify-between items-center text-sm">
-                  <span>{item.title}</span>
+                  <span className="truncate">{item.title}</span> {/* Adicionado truncate */}
                   <span className="text-muted-foreground">{item.time}</span>
                 </div>
               ))}
