@@ -35,7 +35,6 @@ const Login: React.FC = () => {
                     inputBorderHover: 'hsl(var(--ring))',
                     inputBorderFocus: 'hsl(var(--ring))',
                     inputText: 'hsl(var(--foreground))',
-                    inputLabel: 'hsl(var(--muted-foreground))',
                     messageText: 'hsl(var(--foreground))',
                     messageBackground: 'hsl(var(--muted))',
                     anchorTextColor: 'hsl(var(--primary))',
