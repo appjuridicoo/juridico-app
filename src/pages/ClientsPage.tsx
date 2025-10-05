@@ -3,14 +3,15 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit, Plus, Search, Trash } from 'lucide-react';
+import { Edit, Plus, Search, Trash, User, Building2, Mail, Phone, FileText, MapPin, Info } from 'lucide-react';
 import { useDataStorage, Client } from '@/hooks/use-data-storage';
 import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 const ClientsPage: React.FC = () => {
   const { data, setData, saveData } = useDataStorage();
@@ -21,7 +22,8 @@ const ClientsPage: React.FC = () => {
   const filteredClients = data.clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.document.toLowerCase().includes(searchTerm.toLowerCase())
+    client.document.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (client.contact && client.contact.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleAddClient = () => {
@@ -109,52 +111,56 @@ const ClientsPage: React.FC = () => {
         </Button>
       </div>
 
-      <div className="rounded-md border overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome / Razão Social</TableHead>
-              <TableHead>Contato</TableHead>
-              <TableHead>CPF / CNPJ</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Telefone</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredClients.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                  Nenhum cliente encontrado.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredClients.map((client) => (
-                <TableRow key={client.id}>
-                  <TableCell className="font-medium">{client.name}</TableCell>
-                  <TableCell>{client.contact || '-'}</TableCell>
-                  <TableCell>{client.document}</TableCell>
-                  <TableCell>{client.email}</TableCell>
-                  <TableCell>{client.phone}</TableCell>
-                  <TableCell>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(client.status)}`}>
-                      {client.status.charAt(0).toUpperCase() + client.status.slice(1)}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleEditClient(client)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteClient(client.id)}>
-                      <Trash className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredClients.length === 0 ? (
+          <p className="col-span-full text-center text-muted-foreground py-10">Nenhum cliente encontrado.</p>
+        ) : (
+          filteredClients.map((client) => (
+            <Card key={client.id} className="relative flex flex-col">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    {client.type === 'person' ? <User className="h-5 w-5 text-primary" /> : <Building2 className="h-5 w-5 text-primary" />}
+                    {client.name}
+                  </CardTitle>
+                  <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", getStatusBadgeClass(client.status))}>
+                    {client.status.charAt(0).toUpperCase() + client.status.slice(1)}
+                  </span>
+                </div>
+                {client.contact && <CardDescription className="mt-1">Contato: {client.contact}</CardDescription>}
+              </CardHeader>
+              <CardContent className="flex-1 space-y-2 text-sm text-muted-foreground">
+                <div className="flex items-center">
+                  <FileText className="h-4 w-4 mr-2" /> {client.document}
+                </div>
+                <div className="flex items-center">
+                  <Mail className="h-4 w-4 mr-2" /> {client.email}
+                </div>
+                <div className="flex items-center">
+                  <Phone className="h-4 w-4 mr-2" /> {client.phone}
+                </div>
+                {client.address && (
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-2" /> {client.address}
+                  </div>
+                )}
+                {client.notes && (
+                  <div className="flex items-start">
+                    <Info className="h-4 w-4 mr-2 mt-1 flex-shrink-0" /> <span className="break-words">{client.notes}</span>
+                  </div>
+                )}
+              </CardContent>
+              <div className="flex justify-end p-4 pt-0 gap-2">
+                <Button variant="outline" size="sm" onClick={() => handleEditClient(client)}>
+                  <Edit className="h-4 w-4 mr-2" /> Editar
+                </Button>
+                <Button variant="destructive" size="sm" onClick={() => handleDeleteClient(client.id)}>
+                  <Trash className="h-4 w-4 mr-2" /> Excluir
+                </Button>
+              </div>
+            </Card>
+          ))
+        )}
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
