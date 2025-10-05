@@ -4,21 +4,23 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Layout from "@/components/layout/Layout"; // Importa o Layout
-import DashboardPage from "./pages/DashboardPage"; // Nova página do Dashboard
-import ClientsPage from "./pages/ClientsPage"; // Nova página de Clientes
-import ProcessesPage from "./pages/ProcessesPage"; // Nova página de Processos
-import CalendarPage from "./pages/CalendarPage"; // Nova página de Agenda
-import FinancialPage from "./pages/FinancialPage"; // Nova página Financeira
-import DocumentsPage from "./pages/DocumentsPage"; // Nova página de Documentos
-import PublicationsPage from "./pages/PublicationsPage"; // Nova página de Publicações
-import ResearchPage from "./pages/ResearchPage"; // Nova página de Pesquisa Jurídica
-import ClientPortalPage from "./pages/ClientPortalPage"; // Nova página de Portal do Cliente
-import ChatPage from "./pages/ChatPage"; // Nova página de Chat Interno
-import SettingsPage from "./pages/SettingsPage"; // Nova página de Configurações
-import HelpPage from "./pages/HelpPage"; // Importa a nova página de Ajuda
+import Layout from "@/components/layout/Layout";
+import DashboardPage from "./pages/DashboardPage";
+import ClientsPage from "./pages/ClientsPage";
+import ProcessesPage from "./pages/ProcessesPage";
+import CalendarPage from "./pages/CalendarPage";
+import FinancialPage from "./pages/FinancialPage";
+import DocumentsPage from "./pages/DocumentsPage";
+import PublicationsPage from "./pages/PublicationsPage";
+import ResearchPage from "./pages/ResearchPage";
+import ClientPortalPage from "./pages/ClientPortalPage";
+import ChatPage from "./pages/ChatPage";
+import SettingsPage from "./pages/SettingsPage";
+import HelpPage from "./pages/HelpPage";
 import NotFound from "./pages/NotFound";
-import { DataStorageProvider } from "./hooks/use-data-storage"; // Importa o provedor de dados
+import Login from "./pages/Login"; // Importa a nova página de Login
+import { DataStorageProvider } from "./hooks/use-data-storage";
+import { SessionContextProvider } from "./components/SessionContextProvider"; // Importa o provedor de sessão
 
 const queryClient = new QueryClient();
 
@@ -28,27 +30,28 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <DataStorageProvider> {/* Envolve a aplicação com o provedor de dados */}
-          <Layout> {/* Envolve as rotas com o Layout */}
+        <SessionContextProvider> {/* Envolve a aplicação com o provedor de sessão */}
+          <DataStorageProvider>
             <Routes>
-              <Route path="/" element={<DashboardPage />} />
-              <Route path="/clients" element={<ClientsPage />} />
-              <Route path="/processes" element={<ProcessesPage />} />
-              <Route path="/calendar" element={<CalendarPage />} />
-              <Route path="/financial" element={<FinancialPage />} />
-              <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/publications" element={<PublicationsPage />} />
-              <Route path="/research" element={<ResearchPage />} />
-              <Route path="/portal" element={<ClientPortalPage />} />
-              <Route path="/chat" element={<ChatPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/help" element={<HelpPage />} /> {/* Rota para a página de Ajuda */}
-              <Route path="/logout" element={<h1 className="text-2xl font-bold">Fazendo Logout...</h1>} />
+              <Route path="/login" element={<Login />} /> {/* Rota para a página de Login */}
+              <Route path="/" element={<Layout><DashboardPage /></Layout>} />
+              <Route path="/clients" element={<Layout><ClientsPage /></Layout>} />
+              <Route path="/processes" element={<Layout><ProcessesPage /></Layout>} />
+              <Route path="/calendar" element={<Layout><CalendarPage /></Layout>} />
+              <Route path="/financial" element={<Layout><FinancialPage /></Layout>} />
+              <Route path="/documents" element={<Layout><DocumentsPage /></Layout>} />
+              <Route path="/publications" element={<Layout><PublicationsPage /></Layout>} />
+              <Route path="/research" element={<Layout><ResearchPage /></Layout>} />
+              <Route path="/portal" element={<Layout><ClientPortalPage /></Layout>} />
+              <Route path="/chat" element={<Layout><ChatPage /></Layout>} />
+              <Route path="/settings" element={<Layout><SettingsPage /></Layout>} />
+              <Route path="/help" element={<Layout><HelpPage /></Layout>} />
+              <Route path="/logout" element={<Layout><h1 className="text-2xl font-bold">Fazendo Logout...</h1></Layout>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
+              <Route path="*" element={<Layout><NotFound /></Layout>} />
             </Routes>
-          </Layout>
-        </DataStorageProvider>
+          </DataStorageProvider>
+        </SessionContextProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
