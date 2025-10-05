@@ -139,6 +139,11 @@ const getInitialDocumentsData = (): DocumentItem[] => [
   { id: 11, type: 'file', name: 'Procuração.pdf', date: '2023-10-27', size: 500000 },
   { id: 12, type: 'folder', name: 'Documentos Fiscais', count: 5 },
   { id: 13, type: 'file', name: 'Recibo de Pagamento.pdf', date: '2023-10-28', size: 300000 },
+  { id: 14, type: 'file', name: 'Relatório Mensal.pdf', date: '2023-10-29', size: 1800000 },
+  { id: 15, type: 'file', name: 'Ata de Reunião.docx', date: '2023-10-30', size: 700000 },
+  { id: 16, type: 'file', name: 'Certidão Negativa.pdf', date: '2023-10-31', size: 450000 },
+  { id: 17, type: 'file', name: 'Contrato Social.pdf', date: '2023-11-01', size: 2100000 },
+  { id: 18, type: 'file', name: 'Declaração de Hipossuficiência.docx', date: '2023-11-02', size: 300000 },
 ];
 
 const initialData: AppData = {
@@ -171,9 +176,10 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const loadItem = <T,>(key: string, fallbackData: () => T): T => {
       try {
         const item = localStorage.getItem(key);
+        console.log(`[DataStorage] Loading ${key} from localStorage:`, item ? 'Found' : 'Not found', item);
         return item ? JSON.parse(item) : fallbackData();
       } catch (error) {
-        console.error(`Erro ao carregar ${key} do localStorage:`, error);
+        console.error(`[DataStorage] Erro ao carregar ${key} do localStorage:`, error);
         return fallbackData();
       }
     };
@@ -199,9 +205,11 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
       try {
         const fileHandle = await directoryHandle.getFileHandle(fileName);
         const file = await fileHandle.getFile();
-        return JSON.parse(await file.text());
+        const content = await file.text();
+        console.log(`[DataStorage] Loading ${fileName} from directory:`, content ? 'Found' : 'Not found');
+        return JSON.parse(content);
       } catch (e) {
-        console.warn(`Arquivo ${fileName} não encontrado no diretório. Usando dados iniciais.`);
+        console.warn(`[DataStorage] Arquivo ${fileName} não encontrado no diretório. Usando dados iniciais.`);
         return fallbackData();
       }
     };
@@ -219,7 +227,7 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setStoragePath(directoryHandle.name);
       toast.success('Dados carregados do diretório com sucesso!');
     } catch (error) {
-      console.error('Erro ao carregar dados do diretório:', error);
+      console.error('[DataStorage] Erro ao carregar dados do diretório:', error);
       toast.error('Erro ao carregar dados do diretório. Usando armazenamento local.');
       loadDataFromLocalStorage();
     }
@@ -237,7 +245,7 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
         loadDataFromLocalStorage();
       }
     } catch (error: any) {
-      console.error('Erro ao selecionar diretório:', error);
+      console.error('[DataStorage] Erro ao selecionar diretório:', error);
       if (error.name !== 'AbortError') {
         toast.error('A seleção de diretório foi cancelada ou falhou.');
       }
@@ -262,6 +270,7 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
           const writable = await fileHandle.createWritable();
           await writable.write(JSON.stringify(content, null, 2));
           await writable.close();
+          console.log(`[DataStorage] Saved ${fileName} to directory.`);
         }
         toast.success('Dados salvos no diretório com sucesso!');
       } else {
@@ -271,10 +280,12 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
         localStorage.setItem('juridico_userProfile', JSON.stringify(data.userProfile));
         localStorage.setItem('juridico_financials', JSON.stringify(data.financials));
         localStorage.setItem('juridico_documents', JSON.stringify(data.documents));
+        console.log('[DataStorage] Saved all data to localStorage.');
+        console.log('[DataStorage] Saved userProfile:', data.userProfile);
         toast.success('Dados salvos no armazenamento local do navegador.');
       }
     } catch (error) {
-      console.error('Erro ao salvar dados:', error);
+      console.error('[DataStorage] Erro ao salvar dados:', error);
       toast.error('Erro ao salvar os dados.');
     }
   }, [data, directoryHandle]);
