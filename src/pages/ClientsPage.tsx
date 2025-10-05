@@ -64,19 +64,33 @@ const ClientsPage: React.FC = () => {
     };
 
     setData(prev => {
+      let updatedClients = prev.clients;
+      let updatedClientAccesses = prev.clientAccesses;
+
       if (editingClient) {
-        return {
-          ...prev,
-          clients: prev.clients.map(client =>
-            client.id === newClient.id ? newClient : client
-          )
-        };
+        // Encontra o cliente antigo para comparar os nomes
+        const oldClient = prev.clients.find(c => c.id === newClient.id);
+        updatedClients = prev.clients.map(client =>
+          client.id === newClient.id ? newClient : client
+        );
+
+        // Se o nome do cliente mudou, atualiza os acessos do cliente
+        if (oldClient && oldClient.name !== newClient.name) {
+          updatedClientAccesses = prev.clientAccesses.map(access =>
+            access.clientId === newClient.id
+              ? { ...access, clientName: newClient.name }
+              : access
+          );
+        }
       } else {
-        return {
-          ...prev,
-          clients: [...prev.clients, newClient]
-        };
+        updatedClients = [...prev.clients, newClient];
       }
+
+      return {
+        ...prev,
+        clients: updatedClients,
+        clientAccesses: updatedClientAccesses,
+      };
     });
     saveData();
     setIsModalOpen(false);
@@ -164,7 +178,7 @@ const ClientsPage: React.FC = () => {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto"> {/* Adicionado max-h e overflow-y-auto */}
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingClient ? 'Editar Cliente' : 'Adicionar Novo Cliente'}</DialogTitle>
           </DialogHeader>
