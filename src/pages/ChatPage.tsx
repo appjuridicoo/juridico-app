@@ -1,38 +1,193 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, Phone, Video, Info, Paperclip, Smile, Send, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useSession } from '@/components/SessionContextProvider';
+import { User as SupabaseUser } from '@supabase/supabase-js'; // Importar o tipo User do Supabase
+
+// Definindo tipos para os dados do chat
+interface ChatUserProfile {
+  id: string; // Supabase user ID
+  display_name: string;
+  avatar_url: string | null;
+  email: string;
+}
+
+interface ChatMessage {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  created_at: string;
+  // Adicionaremos informações do remetente para exibição
+  sender_profile?: ChatUserProfile;
+}
+
+// Função auxiliar para obter detalhes do perfil de forma consistente
+const getProfileDetails = (profile: ChatUserProfile | SupabaseUser | null | undefined) => {
+  if (!profile) {
+    return {
+      displayName: 'Usuário',
+      avatarUrl: "https://i.pravatar.cc/150?img=11", // Avatar padrão
+    };
+  }
+
+  if ('display_name' in profile) { // É um ChatUserProfile
+    return {
+      displayName: profile.display_name,
+      avatarUrl: profile.avatar_url || "https://i.pravatar.cc/150?img=11",
+    };
+  } else { // É um SupabaseUser
+    return {
+      displayName: profile.user_metadata?.full_name || profile.user_metadata?.display_name || 'Usuário',
+      avatarUrl: profile.user_metadata?.avatar_url || "https://i.pravatar.cc/150?img=11",
+    };
+  }
+};
+
 
 const ChatPage: React.FC = () => {
-  const contacts = [
-    { id: 1, name: 'Dr. João Silva', avatar: 'https://i.pravatar.cc/150?img=12', status: 'online', preview: 'Sim, já enviei a petição...', time: '10:30' },
-    { id: 2, name: 'Dra. Maria Santos', avatar: 'https://i.pravatar.cc/150?img=5', status: 'away', preview: 'Podemos marcar uma reunião...', time: '09:15' },
-    { id: 3, name: 'Dr. Pedro Oliveira', avatar: 'https://i.pravatar.cc/150?img=8', status: 'offline', preview: 'Obrigado pelo envio do documento', time: 'Ontem' },
-    { id: 4, name: 'Ana Paula', avatar: 'https://i.pravatar.cc/150?img=3', status: 'online', preview: 'Já está agendada a audiência', time: 'Ontem' },
-  ];
+  const { user, isLoading: isSessionLoading } = useSession();
+  const [contacts, setContacts] = useState<ChatUserProfile[]>([]);
+  const [selectedContact, setSelectedContact] = useState<ChatUserProfile | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [newMessageContent, setNewMessageContent] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const messages = [
-    { id: 1, sender: 'Dr. João Silva', avatar: 'https://i.pravatar.cc/150?img=12', content: 'Bom dia! Você já conseguiu analisar o contrato que enviei ontem?', time: '09:15', type: 'received' },
-    { id: 2, sender: 'Eu', avatar: 'https://i.pravatar.cc/150?img=11', content: 'Bom dia! Sim, já analisei o contrato. Há algumas cláusulas que precisam ser revisadas.', time: '09:30', type: 'sent' },
-    { id: 3, sender: 'Dr. João Silva', avatar: 'https://i.pravatar.cc/150?img=12', content: 'Quais cláusulas você sugere alterar?', time: '09:32', type: 'received' },
-    { id: 4, sender: 'Eu', avatar: 'https://i.pravatar.cc/150?img=11', content: 'Principalmente as cláusulas 5 e 8, que tratam sobre multa rescisória e confidencialidade. Vou preparar uma versão revisada e te envio ainda esta manhã.', time: '09:45', type: 'sent' },
-    { id: 5, sender: 'Dr. João Silva', avatar: 'https://i.pravatar.cc/150?img=12', content: 'Perfeito! Fico no aguardo. O cliente precisa urgentemente deste documento.', time: '09:50', type: 'received' },
-    { id: 6, sender: 'Eu', avatar: 'https://i.pravatar.cc/150?img=11', content: 'Sim, já enviei a petição para o cliente. Ele já assinou e devolveu.', time: '10:30', type: 'sent' },
-  ];
+  const currentUserId = user?.id;
 
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'online': return 'bg-green-500';
-      case 'away': return 'bg-yellow-500';
-      case 'offline': return 'bg-gray-400';
-      default: return 'bg-gray-400';
+  // Função para rolar para o final das mensagens
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Efeito para buscar contatos (outros usuários com perfis)
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const fetchContacts = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url, email')
+        .neq('id', currentUserId); // Exclui o próprio usuário
+
+      if (error) {
+        console.error('Erro ao buscar contatos:', error);
+        toast.error('Erro ao carregar contatos.');
+      } else {
+        setContacts(data as ChatUserProfile[]);
+      }
+    };
+
+    fetchContacts();
+  }, [currentUserId]);
+
+  // Efeito para buscar mensagens e configurar a escuta em tempo real
+  useEffect(() => {
+    if (!currentUserId || !selectedContact) {
+      setMessages([]); // Limpa as mensagens se não houver contato selecionado
+      return;
+    }
+
+    const fetchMessages = async () => {
+      const { data, error } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          sender_profile:profiles!messages_sender_id_fkey(display_name, avatar_url)
+        `)
+        .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${selectedContact.id}),and(sender_id.eq.${selectedContact.id},receiver_id.eq.${currentUserId})`)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao buscar mensagens:', error);
+        toast.error('Erro ao carregar mensagens.');
+      } else {
+        setMessages(data.map(msg => ({
+          ...msg,
+          sender_profile: msg.sender_profile ? (msg.sender_profile as ChatUserProfile) : undefined
+        })) as ChatMessage[]);
+        scrollToBottom();
+      }
+    };
+
+    fetchMessages();
+
+    // Configura a escuta em tempo real para novas mensagens
+    const subscription = supabase
+      .channel(`chat_${currentUserId}_${selectedContact.id}`) // Canal específico para a conversa
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `(sender_id=eq.${currentUserId}&receiver_id=eq.${selectedContact.id})| (sender_id=eq.${selectedContact.id}&receiver_id=eq.${currentUserId})`,
+        },
+        (payload) => {
+          const newMsg = payload.new as ChatMessage;
+          // Busca o perfil do remetente para a nova mensagem
+          supabase.from('profiles').select('display_name, avatar_url').eq('id', newMsg.sender_id).single()
+            .then(({ data: profileData, error: profileError }) => {
+              if (!profileError && profileData) {
+                newMsg.sender_profile = profileData as ChatUserProfile;
+              }
+              setMessages((prevMessages) => [...prevMessages, newMsg]);
+              scrollToBottom();
+            });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [currentUserId, selectedContact]);
+
+  // Efeito para rolar para o final quando as mensagens são carregadas/atualizadas
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!newMessageContent.trim() || !currentUserId || !selectedContact) return;
+
+    const { error } = await supabase.from('messages').insert({
+      sender_id: currentUserId,
+      receiver_id: selectedContact.id,
+      content: newMessageContent.trim(),
+    });
+
+    if (error) {
+      console.error('Erro ao enviar mensagem:', error);
+      toast.error('Erro ao enviar mensagem.');
+    } else {
+      setNewMessageContent('');
+      // A mensagem será adicionada via real-time subscription, então não precisamos adicionar aqui
+      // toast.success('Mensagem enviada!'); // Removido para evitar toast duplicado com real-time
     }
   };
+
+  const filteredContacts = contacts.filter(contact =>
+    contact.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contact.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (isSessionLoading) {
+    return <div className="flex items-center justify-center h-full text-muted-foreground">Carregando chat...</div>;
+  }
+
+  if (!user) {
+    return <div className="flex items-center justify-center h-full text-muted-foreground">Faça login para acessar o chat.</div>;
+  }
 
   return (
     <div className="space-y-6 h-[calc(100vh-150px)] flex flex-col">
@@ -43,111 +198,143 @@ const ChatPage: React.FC = () => {
         <aside className="bg-card p-4 rounded-lg shadow-sm flex flex-col">
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar contatos..." className="pl-9" />
+            <Input
+              placeholder="Buscar contatos..."
+              className="pl-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-1">
-            {contacts.map(contact => (
-              <div
-                key={contact.id}
-                className={cn(
-                  "flex items-center p-3 rounded-lg cursor-pointer hover:bg-accent/50 transition-colors",
-                  contact.id === 1 && "bg-accent text-accent-foreground" // Active contact example
-                )}
-                onClick={() => toast.info(`Abrindo chat com ${contact.name}`)}
-              >
-                <div className="relative mr-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={contact.avatar} alt={contact.name} />
-                    <AvatarFallback><User /></AvatarFallback>
-                  </Avatar>
-                  <span className={cn("absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background", getStatusClass(contact.status))} />
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium">{contact.name}</div>
-                  <div className="text-sm text-muted-foreground truncate">{contact.preview}</div>
-                </div>
-                <div className="text-xs text-muted-foreground">{contact.time}</div>
-              </div>
-            ))}
+            {filteredContacts.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4">Nenhum contato encontrado.</p>
+            ) : (
+              filteredContacts.map(contact => {
+                const contactDetails = getProfileDetails(contact);
+                return (
+                  <div
+                    key={contact.id}
+                    className={cn(
+                      "flex items-center p-3 rounded-lg cursor-pointer hover:bg-accent/50 transition-colors",
+                      selectedContact?.id === contact.id && "bg-accent text-accent-foreground"
+                    )}
+                    onClick={() => setSelectedContact(contact)}
+                  >
+                    <div className="relative mr-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={contactDetails.avatarUrl} alt={contactDetails.displayName} />
+                        <AvatarFallback><User /></AvatarFallback>
+                      </Avatar>
+                      {/* Status online/offline mockado por enquanto */}
+                      <span className={cn("absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background", "bg-green-500")} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium">{contactDetails.displayName}</div>
+                      <div className="text-sm text-muted-foreground truncate">{contact.email}</div>
+                    </div>
+                    {/* <div className="text-xs text-muted-foreground">{contact.time}</div> */}
+                  </div>
+                );
+              })
+            )}
           </div>
         </aside>
 
         {/* Chat Main */}
         <div className="bg-card rounded-lg shadow-sm flex flex-col">
-          <div className="flex items-center p-4 border-b">
-            <Avatar className="h-10 w-10 mr-4">
-              <AvatarImage src="https://i.pravatar.cc/150?img=12" alt="Dr. João Silva" />
-              <AvatarFallback><User /></AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <div className="font-semibold">Dr. João Silva</div>
-              <div className="text-sm text-muted-foreground">Online</div>
+          {!selectedContact ? (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground">
+              Selecione um contato para iniciar a conversa.
             </div>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="icon" onClick={() => toast.info("Chamada de voz em desenvolvimento!")}>
-                <Phone className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => toast.info("Chamada de vídeo em desenvolvimento!")}>
-                <Video className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => toast.info("Informações do contato em desenvolvimento!")}>
-                <Info className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex-1 p-4 overflow-y-auto space-y-4">
-            <div className="relative text-center my-4">
-              <span className="relative z-10 bg-card px-3 text-sm text-muted-foreground">Hoje</span>
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border" />
-              </div>
-            </div>
-
-            {messages.map(message => (
-              <div key={message.id} className={cn("flex items-start gap-3", message.type === 'sent' && "justify-end")}>
-                {message.type === 'received' && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={message.avatar} alt={message.sender} />
-                    <AvatarFallback><User /></AvatarFallback>
-                  </Avatar>
-                )}
-                <div className={cn("flex flex-col max-w-[70%]", message.type === 'sent' && "items-end")}>
-                  <div className={cn(
-                    "p-3 rounded-lg",
-                    message.type === 'received' ? "bg-muted text-foreground rounded-bl-sm" : "bg-primary text-primary-foreground rounded-br-sm"
-                  )}>
-                    {message.content}
-                  </div>
-                  <span className={cn("text-xs mt-1", message.type === 'received' ? "text-muted-foreground" : "text-primary-foreground/70")}>
-                    {message.time}
-                  </span>
+          ) : (
+            <>
+              <div className="flex items-center p-4 border-b">
+                <Avatar className="h-10 w-10 mr-4">
+                  <AvatarImage src={getProfileDetails(selectedContact).avatarUrl} alt={getProfileDetails(selectedContact).displayName} />
+                  <AvatarFallback><User /></AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="font-semibold">{getProfileDetails(selectedContact).displayName}</div>
+                  <div className="text-sm text-muted-foreground">Online</div> {/* Status mockado */}
                 </div>
-                {message.type === 'sent' && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={message.avatar} alt={message.sender} />
-                    <AvatarFallback><User /></AvatarFallback>
-                  </Avatar>
-                )}
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="icon" onClick={() => toast.info("Chamada de voz em desenvolvimento!")}>
+                    <Phone className="h-5 w-5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => toast.info("Chamada de vídeo em desenvolvimento!")}>
+                    <Video className="h-5 w-5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => toast.info("Informações do contato em desenvolvimento!")}>
+                    <Info className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
-            ))}
-          </div>
 
-          <div className="p-4 border-t">
-            <div className="flex items-center gap-2 bg-muted rounded-full px-4 py-2">
-              <Input placeholder="Digite sua mensagem..." className="flex-1 border-none bg-transparent focus-visible:ring-0" />
-              <Button variant="ghost" size="icon" onClick={() => toast.info("Anexar arquivo em desenvolvimento!")}>
-                <Paperclip className="h-5 w-5 text-muted-foreground" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => toast.info("Emoji em desenvolvimento!")}>
-                <Smile className="h-5 w-5 text-muted-foreground" />
-              </Button>
-              <Button size="icon" className="rounded-full" onClick={() => toast.success("Mensagem enviada!")}>
-                <Send className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
+              <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                {messages.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-10">Nenhuma mensagem nesta conversa.</div>
+                ) : (
+                  messages.map(message => {
+                    const isSentByCurrentUser = message.sender_id === currentUserId;
+                    const senderProfile = isSentByCurrentUser ? user : selectedContact;
+                    const senderDetails = getProfileDetails(senderProfile); // Usar a função auxiliar aqui
+                    const displayTime = new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                    return (
+                      <div key={message.id} className={cn("flex items-start gap-3", isSentByCurrentUser && "justify-end")}>
+                        {!isSentByCurrentUser && (
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={senderDetails.avatarUrl} alt={senderDetails.displayName} />
+                            <AvatarFallback><User /></AvatarFallback>
+                          </Avatar>
+                        )}
+                        <div className={cn("flex flex-col max-w-[70%]", isSentByCurrentUser && "items-end")}>
+                          <div className={cn(
+                            "p-3 rounded-lg",
+                            isSentByCurrentUser ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-muted text-foreground rounded-bl-sm"
+                          )}>
+                            {message.content}
+                          </div>
+                          <span className={cn("text-xs mt-1", isSentByCurrentUser ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                            {displayTime}
+                          </span>
+                        </div>
+                        {isSentByCurrentUser && (
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={senderDetails.avatarUrl} alt={senderDetails.displayName} />
+                            <AvatarFallback><User /></AvatarFallback>
+                          </Avatar>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+                <div ref={messagesEndRef} /> {/* Para rolar para o final */}
+              </div>
+
+              <form onSubmit={handleSendMessage} className="p-4 border-t">
+                <div className="flex items-center gap-2 bg-muted rounded-full px-4 py-2">
+                  <Input
+                    placeholder="Digite sua mensagem..."
+                    className="flex-1 border-none bg-transparent focus-visible:ring-0"
+                    value={newMessageContent}
+                    onChange={(e) => setNewMessageContent(e.target.value)}
+                    disabled={!selectedContact}
+                  />
+                  <Button variant="ghost" size="icon" type="button" onClick={() => toast.info("Anexar arquivo em desenvolvimento!")}>
+                    <Paperclip className="h-5 w-5 text-muted-foreground" />
+                  </Button>
+                  <Button variant="ghost" size="icon" type="button" onClick={() => toast.info("Emoji em desenvolvimento!")}>
+                    <Smile className="h-5 w-5 text-muted-foreground" />
+                  </Button>
+                  <Button size="icon" className="rounded-full" type="submit" disabled={!selectedContact || !newMessageContent.trim()}>
+                    <Send className="h-5 w-5" />
+                  </Button>
+                </div>
+              </form>
+            </>
+          )}
         </div>
       </div>
     </div>
