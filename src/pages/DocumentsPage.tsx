@@ -10,6 +10,7 @@ import { Folder, FileText, Upload, Plus, FileEdit, Trash, File, Pencil } from 'l
 import { useDataStorage, DocumentItem } from '@/hooks/use-data-storage';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Importar Card components
 
 const formatFileSize = (bytes: number) => {
   if (bytes === 0) return '0 Bytes';
@@ -268,33 +269,35 @@ const DocumentsPage: React.FC = () => {
         onChange={handleFileChange}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"> {/* Ajustado para 3 colunas em telas grandes */}
         {data.documents.map(item => (
-          <div
+          <Card
             key={item.id}
-            className="relative bg-card p-4 rounded-lg shadow-sm flex flex-col items-center text-center group hover:bg-accent/50 transition-colors"
+            className="relative flex flex-col items-center text-center group hover:bg-accent/50 transition-colors p-4"
           >
-            {item.type === 'folder' ? (
-              <Folder className="h-12 w-12 text-yellow-500 mb-2" />
-            ) : (
-              React.createElement(getFileIcon(item.name), { className: cn("h-12 w-12 mb-2", getFileIconColorClass(item.name)) })
-            )}
-            {isRenaming?.id === item.id ? (
-              <form onSubmit={handleRenameSubmit} className="w-full mt-2">
-                <Input
-                  value={newFileName}
-                  onChange={(e) => setNewFileName(e.target.value)}
-                  onBlur={handleRenameSubmit}
-                  autoFocus
-                  className="text-center text-sm"
-                />
-              </form>
-            ) : (
-              <span className="font-medium text-sm truncate w-full px-2">{item.name}</span>
-            )}
-            <span className="text-xs text-muted-foreground mt-1">
+            <CardHeader className="p-0 pb-2 flex flex-col items-center">
+              {item.type === 'folder' ? (
+                <Folder className="h-12 w-12 text-yellow-500 mb-2" />
+              ) : (
+                React.createElement(getFileIcon(item.name), { className: cn("h-12 w-12 mb-2", getFileIconColorClass(item.name)) })
+              )}
+              {isRenaming?.id === item.id ? (
+                <form onSubmit={handleRenameSubmit} className="w-full mt-2">
+                  <Input
+                    value={newFileName}
+                    onChange={(e) => setNewFileName(e.target.value)}
+                    onBlur={handleRenameSubmit}
+                    autoFocus
+                    className="text-center text-sm"
+                  />
+                </form>
+              ) : (
+                <CardTitle className="font-medium text-sm truncate w-full px-2">{item.name}</CardTitle>
+              )}
+            </CardHeader>
+            <CardContent className="p-0 text-xs text-muted-foreground mt-1">
               {item.type === 'folder' ? `${item.count} documentos` : `${item.date ? new Date(item.date).toLocaleDateString('pt-BR') : ''} • ${formatFileSize(item.size || 0)}`}
-            </span>
+            </CardContent>
 
             <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRenameClick(item)}>
@@ -309,7 +312,7 @@ const DocumentsPage: React.FC = () => {
                 <Trash className="h-4 w-4" />
               </Button>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
