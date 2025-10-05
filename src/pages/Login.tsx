@@ -59,6 +59,11 @@ const Login: React.FC = () => {
                   link_text: 'Esqueceu sua senha?',
                 },
                 sign_up: {
+                  email_label: 'Endereço de e-mail',
+                  password_label: 'Criar uma senha',
+                  email_input_placeholder: 'Seu endereço de e-mail',
+                  password_input_placeholder: 'Crie sua senha',
+                  button_label: 'Cadastrar',
                   link_text: 'Não tem uma conta? Cadastre-se',
                 },
               },
