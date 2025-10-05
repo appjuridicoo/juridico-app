@@ -8,13 +8,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Key, Edit, Ban, Plus, Mail, Calendar, Clock, Briefcase, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { useDataStorage, ClientAccess } from '@/hooks/use-data-storage'; // Importar ClientAccess
+import { useDataStorage, ClientAccess } from '@/hooks/use-data-storage';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 const ClientPortalPage: React.FC = () => {
   const { data, setData, saveData } = useDataStorage();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingClientAccess, setEditingClientAccess] = useState<ClientAccess | null>(null);
+  const [editFormState, setEditFormState] = useState<Partial<ClientAccess>>({});
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
@@ -74,8 +79,41 @@ const ClientPortalPage: React.FC = () => {
   };
 
   const handleEditAccess = (access: ClientAccess) => {
-    toast.info(`Funcionalidade de editar acesso para ${access.clientName} em desenvolvimento!`);
-    // Implementar modal de edição aqui
+    setEditingClientAccess(access);
+    setEditFormState({
+      email: access.email,
+      processes: access.processes,
+      status: access.status,
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditFormChange = (field: keyof ClientAccess, value: any) => {
+    setEditFormState(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingClientAccess) return;
+
+    const updatedAccess: ClientAccess = {
+      ...editingClientAccess,
+      email: editFormState.email || editingClientAccess.email,
+      processes: editFormState.processes || editingClientAccess.processes,
+      status: (editFormState.status as 'Ativo' | 'Pendente' | 'Inativo') || editingClientAccess.status,
+    };
+
+    setData(prev => ({
+      ...prev,
+      clientAccesses: prev.clientAccesses.map(a =>
+        a.id === updatedAccess.id ? updatedAccess : a
+      )
+    }));
+    saveData();
+    toast.success(`Acesso de ${updatedAccess.clientName} atualizado com sucesso!`);
+    setIsEditModalOpen(false);
+    setEditingClientAccess(null);
+    setEditFormState({});
   };
 
   const handleResetPassword = (access: ClientAccess) => {
@@ -189,6 +227,61 @@ const ClientPortalPage: React.FC = () => {
           ))
         )}
       </div>
+
+      {/* Modal de Edição de Acesso do Cliente */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Editar Acesso do Cliente: {editingClientAccess?.clientName}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="editEmail" className="text-right">Email</Label>
+              <Input
+                id="editEmail"
+                name="editEmail"
+                type="email"
+                value={editFormState.email || ''}
+                onChange={(e) => handleEditFormChange('email', e.target.value)}
+                className="col-span-3"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="editProcesses" className="text-right">Processos</Label>
+              <Textarea
+                id="editProcesses"
+                name="editProcesses"
+                value={editFormState.processes?.join(', ') || ''}
+                onChange={(e) => handleEditFormChange('processes', e.target.value.split(',').map(p => p.trim()).filter(p => p !== ''))}
+                className="col-span-3"
+                placeholder="Separe os números dos processos por vírgula"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="editStatus" className="text-right">Status</Label>
+              <Select
+                name="editStatus"
+                value={editFormState.status || 'Pendente'}
+                onValueChange={(value: 'Ativo' | 'Pendente' | 'Inativo') => handleEditFormChange('status', value)}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Ativo">Ativo</SelectItem>
+                  <SelectItem value="Pendente">Pendente</SelectItem>
+                  <SelectItem value="Inativo">Inativo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter className="mt-4">
+              <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
+              <Button type="submit">Salvar Alterações</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
