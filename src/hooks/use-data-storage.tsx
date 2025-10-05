@@ -177,7 +177,20 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
       try {
         const item = localStorage.getItem(key);
         console.log(`[DataStorage] Loading ${key} from localStorage:`, item ? 'Found' : 'Not found', item);
-        return item ? JSON.parse(item) : fallbackData();
+        if (item) {
+          const parsedItem = JSON.parse(item);
+          // Se o item parseado for um array vazio, e o fallbackData não for vazio, usa o fallback.
+          // Isso lida com casos onde um array vazio foi acidentalmente salvo.
+          if (Array.isArray(parsedItem) && parsedItem.length === 0) {
+            const initial = fallbackData();
+            if (Array.isArray(initial) && initial.length > 0) {
+              console.warn(`[DataStorage] LocalStorage para ${key} está vazio. Usando dados iniciais.`);
+              return initial;
+            }
+          }
+          return parsedItem;
+        }
+        return fallbackData();
       } catch (error) {
         console.error(`[DataStorage] Erro ao carregar ${key} do localStorage:`, error);
         return fallbackData();
@@ -227,7 +240,7 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setStoragePath(directoryHandle.name);
       toast.success('Dados carregados do diretório com sucesso!');
     } catch (error) {
-      console.error('[DataStorage] Erro ao carregar dados do diretório:', error);
+      console.error('Erro ao carregar dados do diretório:', error);
       toast.error('Erro ao carregar dados do diretório. Usando armazenamento local.');
       loadDataFromLocalStorage();
     }
@@ -245,7 +258,7 @@ export const DataStorageProvider: React.FC<{ children: React.ReactNode }> = ({ c
         loadDataFromLocalStorage();
       }
     } catch (error: any) {
-      console.error('[DataStorage] Erro ao selecionar diretório:', error);
+      console.error('Erro ao selecionar diretório:', error);
       if (error.name !== 'AbortError') {
         toast.error('A seleção de diretório foi cancelada ou falhou.');
       }
